@@ -2,10 +2,9 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
  */
-package Controller;
+package AdminController;
 
 import DAO.ProductDAO;
-import DTO.ProductDTO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import javax.servlet.ServletException;
@@ -18,8 +17,8 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author FPT
  */
-@WebServlet(name = "GetProductForEditController", urlPatterns = {"/GetProductForEditController"})
-public class GetProductForEditController extends HttpServlet {
+@WebServlet(name = "DeleteProductController", urlPatterns = {"/DeleteProductController"})
+public class DeleteProductController extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -34,19 +33,20 @@ public class GetProductForEditController extends HttpServlet {
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         try {
-            // 1. Lấy ID sản phẩm từ URL (?action=edit-product&id=1)
+            // 1. Lấy ID của sản phẩm cần xóa từ URL
             String productID = request.getParameter("id");
-            
-            // 2. Gọi DAO để lấy thông tin chi tiết của sản phẩm đó
-            ProductDAO dao = new ProductDAO();
-            ProductDTO product = dao.getProductByID(productID); // Em cần viết thêm hàm này trong DAO nhé
-            
-            // 3. Đẩy dữ liệu sang trang edit_product.jsp
-            request.setAttribute("PRODUCT_INFO", product);
-            request.getRequestDispatcher("admin/edit_product.jsp").forward(request, response);
-            
+
+            if (productID != null && !productID.isEmpty()) {
+                // 2. Gọi DAO thực hiện Xóa mềm
+                ProductDAO dao = new ProductDAO();
+                dao.deleteProduct(productID);
+            }
+
         } catch (Exception e) {
-            log("Error at GetProductForEditController: " + e.toString());
+            log("Error at DeleteProductController: " + e.toString());
+        } finally {
+            // 3. Xóa xong thì tự động load lại trang danh sách quản lý
+            response.sendRedirect("MainController?action=manage-product");
         }
     }
 

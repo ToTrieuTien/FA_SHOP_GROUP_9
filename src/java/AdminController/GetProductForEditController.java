@@ -8,7 +8,6 @@ import DAO.ProductDAO;
 import DTO.ProductDTO;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -19,8 +18,8 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author FPT
  */
-@WebServlet(name = "AdminProductController", urlPatterns = {"/AdminProductController"})
-public class AdminProductController extends HttpServlet {
+@WebServlet(name = "GetProductForEditController", urlPatterns = {"/GetProductForEditController"})
+public class GetProductForEditController extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -34,23 +33,20 @@ public class AdminProductController extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
-        String url = "admin/admin_product.jsp";
-        
         try {
-            // 1. Khởi tạo DAO
+            // 1. Lấy ID sản phẩm từ URL (?action=edit-product&id=1)
+            String productID = request.getParameter("id");
+            
+            // 2. Gọi DAO để lấy thông tin chi tiết của sản phẩm đó
             ProductDAO dao = new ProductDAO();
+            ProductDTO product = dao.getProductByID(productID); // Em cần viết thêm hàm này trong DAO nhé
             
-            // 2. Gọi hàm lấy toàn bộ danh sách sản phẩm
-            List<ProductDTO> list = dao.getAllProducts();
-            
-            // 3. Đóng gói danh sách vào request để gửi sang JSP
-            request.setAttribute("LIST_PRODUCT", list);
+            // 3. Đẩy dữ liệu sang trang edit_product.jsp
+            request.setAttribute("PRODUCT_INFO", product);
+            request.getRequestDispatcher("admin/edit_product.jsp").forward(request, response);
             
         } catch (Exception e) {
-            log("Error at AdminProductController: " + e.toString());
-        } finally {
-            // 4. Chuyển tiếp (forward) request và response sang trang JSP
-            request.getRequestDispatcher("admin/product.jsp").forward(request, response);
+            log("Error at GetProductForEditController: " + e.toString());
         }
     }
 

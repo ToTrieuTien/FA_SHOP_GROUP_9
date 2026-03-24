@@ -32,55 +32,59 @@ public class LoginController extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
-       String url = "login.jsp";
-    
-    try {
-        String email = request.getParameter("email");
-        String password = request.getParameter("password");
+        String url = "login.jsp"; // Mặc định nếu có lỗi thì ở lại trang login
 
-        // --- BẮT ĐẦU VALIDATION ---
-        boolean isError = false;
+        try {
+            String email = request.getParameter("email");
+            String password = request.getParameter("password");
 
-        if (!Utils.MyValidation.isValidEmail(email)) {
-            request.setAttribute("ERROR", "Định dạng Email không hợp lệ!");
-            isError = true;
-        } else if (!Utils.MyValidation.isValidPassword(password)) {
-            request.setAttribute("ERROR", "Mật khẩu không được để trống!");
-            isError = true;
-        }
+            // --- BẮT ĐẦU VALIDATION ---
+            boolean isError = false;
 
-        // Nếu có lỗi thì quay xe về login.jsp ngay
-        if (isError) {
-            request.getRequestDispatcher(url).forward(request, response);
-            return;
-        }
-        // --- KẾT THÚC VALIDATION ---
+            if (!Utils.MyValidation.isValidEmail(email)) {
+                request.setAttribute("ERROR", "Định dạng Email không hợp lệ!");
+                isError = true;
+            } else if (!Utils.MyValidation.isValidPassword(password)) {
+                request.setAttribute("ERROR", "Mật khẩu không được để trống!");
+                isError = true;
+            }
 
-        DAO.UserDAO dao = new DAO.UserDAO();
-        DTO.UserDTO user = dao.checkLogin(email, password);
+            // Nếu có lỗi thì quay xe về login.jsp ngay
+            if (isError) {
+                request.getRequestDispatcher(url).forward(request, response);
+                return;
+            }
+            // --- KẾT THÚC VALIDATION ---
 
-       if (user != null) {
-        // 1. Lưu thông tin người dùng vào Session
-        HttpSession session = request.getSession();
-        session.setAttribute("LOGIN_USER", user);
+            DAO.UserDAO dao = new DAO.UserDAO();
+            DTO.UserDTO user = dao.checkLogin(email, password);
 
-        // 2. Phân quyền (RoleID 1 = Admin, 2 = Customer)
-        if (user.getRoleID() == 1) {
-            url = "admin/dashboard.jsp"; // Đường dẫn đến trang của nhóm Admin
-        } else {
-            url = "MainController?action=view-product"; // Về trang chủ cho khách hàng
-        }
-    } else {
-        // 3. Báo lỗi nếu sai tài khoản
-        request.setAttribute("ERROR", "Email hoặc mật khẩu không đúng!");
+            if (user != null) {
+                // 1. Lưu thông tin người dùng vào Session
+                HttpSession session = request.getSession();
+                session.setAttribute("LOGIN_USER", user);
+
+                // 2. Phân quyền và SỬ DỤNG LỆNH SEND_REDIRECT ĐỂ NGẮT VÒNG LẶP
+                if (user.getRoleID() == 1) {
+                    // Yêu cầu trình duyệt tải trang mới, bỏ qua hết dữ liệu cũ
+                    response.sendRedirect("AdminMainController?action=dashboard");
+                } else {
+                    // Yêu cầu trình duyệt tạo request mới tinh đến MainController
+                    response.sendRedirect("MainController");
+                }
+
+                // 3. QUAN TRỌNG: Ngắt luôn hàm tại đây để code không chạy xuống dưới nữa
+                return;
+
+            } else {
+                // Báo lỗi nếu sai tài khoản
+                request.setAttribute("ERROR", "Email hoặc mật khẩu không đúng!");
+            }
+
+        } catch (Exception e) {
+            log("Error at LoginController: " + e.toString());
+        } request.getRequestDispatcher(url).forward(request, response);
     }
-        
-    } catch (Exception e) {
-        log("Error at LoginController: " + e.toString());
-    } finally {
-        request.getRequestDispatcher(url).forward(request, response);
-    }
-}
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**

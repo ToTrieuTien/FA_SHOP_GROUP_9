@@ -31,17 +31,55 @@ public class AdminMainController extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
-        try ( PrintWriter out = response.getWriter()) {
-            /* TODO output your page here. You may use following sample code. */
-            out.println("<!DOCTYPE html>");
-            out.println("<html>");
-            out.println("<head>");
-            out.println("<title>Servlet AdminMainController</title>");            
-            out.println("</head>");
-            out.println("<body>");
-            out.println("<h1>Servlet AdminMainController at " + request.getContextPath() + "</h1>");
-            out.println("</body>");
-            out.println("</html>");
+        String url = "admin/dashboard.jsp"; // Mặc định vào Dashboard
+
+        try {
+            String action = request.getParameter("action");
+
+            if (action == null || action.isEmpty()) {
+                url = "admin/dashboard.jsp";
+            } else {
+                switch (action) {
+                    case "dashboard":
+                        url = "admin/dashboard.jsp";
+                        break;
+                    case "manage-product":
+                        url = "AdminProductController";
+                        break;
+                    case "add-product-page":
+                        url = "admin/add_product.jsp";
+                        break;
+                    case "add-product":
+                        url = "AddProductController";
+                        break;
+                    case "edit-product":
+                        url = "GetProductForEditController";
+                        break;
+                    case "delete-product":
+                        url = "DeleteProductController";
+                        break;
+                    case "recycle-bin":
+                        url = "RecycleBinController";
+                        break;
+                    case "restore-product":
+                        url = "RestoreProductController";
+                        break;
+                    case "hard-delete-product":
+                        url = "HardDeleteProductController";
+                        break;
+                    case "logout": // Cho phép Admin đăng xuất từ trang quản lý
+                        url = "LogoutController";
+                        break;
+                    default:
+                        request.setAttribute("ERROR", "Hành động (Action) không được hỗ trợ trong Admin!");
+                        url = "error.jsp"; // Hoặc em có thể tạo riêng 1 trang admin/error.jsp
+                        break;
+                }
+            }
+        } catch (Exception e) {
+            log("Error at AdminMainController: " + e.toString());
+        } finally {
+            request.getRequestDispatcher(url).forward(request, response);
         }
     }
 

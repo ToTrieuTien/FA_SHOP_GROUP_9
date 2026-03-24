@@ -5,10 +5,8 @@
 package AdminController;
 
 import DAO.ProductDAO;
-import DTO.ProductDTO;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -19,8 +17,8 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author FPT
  */
-@WebServlet(name = "AdminProductController", urlPatterns = {"/AdminProductController"})
-public class AdminProductController extends HttpServlet {
+@WebServlet(name = "HardDeleteProductController", urlPatterns = {"/HardDeleteProductController"})
+public class HardDeleteProductController extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -34,23 +32,20 @@ public class AdminProductController extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
-        String url = "admin/admin_product.jsp";
-        
         try {
-            // 1. Khởi tạo DAO
-            ProductDAO dao = new ProductDAO();
-            
-            // 2. Gọi hàm lấy toàn bộ danh sách sản phẩm
-            List<ProductDTO> list = dao.getAllProducts();
-            
-            // 3. Đóng gói danh sách vào request để gửi sang JSP
-            request.setAttribute("LIST_PRODUCT", list);
-            
+            String productID = request.getParameter("id");
+            if (productID != null && !productID.isEmpty()) {
+                ProductDAO dao = new ProductDAO();
+                // Gọi hàm xóa vĩnh viễn (xóa ảnh trước, xóa sản phẩm sau)
+                boolean check = dao.hardDeleteProduct(productID);
+                
+                // Mẹo: Nếu check = false nghĩa là bị vướng khóa ngoại đơn hàng, em có thể tùy biến thêm thông báo lỗi ở đây sau này.
+            }
         } catch (Exception e) {
-            log("Error at AdminProductController: " + e.toString());
+            log("Error at HardDeleteProductController: " + e.toString());
         } finally {
-            // 4. Chuyển tiếp (forward) request và response sang trang JSP
-            request.getRequestDispatcher("admin/product.jsp").forward(request, response);
+            // Xóa xong thì load lại trang Thùng rác
+            response.sendRedirect("MainController?action=recycle-bin");
         }
     }
 

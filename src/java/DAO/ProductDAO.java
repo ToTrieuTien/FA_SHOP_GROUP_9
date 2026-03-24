@@ -139,9 +139,11 @@ public class ProductDAO {
                     try ( PreparedStatement psImage = con.prepareStatement(sqlImage)) {
                         psImage.setString(1, fileName);
                         psImage.setInt(2, id);
-                        int updatedRows = psImage.executeUpdate(); // Kiểm tra xem có dòng nào được update không
 
-                        // THẦN CHÚ Ở ĐÂY: Nếu không có dòng nào được update (nghĩa là SP chưa có ảnh) -> Ta phải INSERT mới
+                        // Hứng kết quả xem có bao nhiêu dòng được Update thành công
+                        int updatedRows = psImage.executeUpdate();
+
+                        // THẦN CHÚ Ở ĐÂY: Nếu = 0 (tức là chưa có ảnh trong DB) -> Chuyển sang INSERT mới
                         if (updatedRows == 0) {
                             String sqlInsertImg = "INSERT INTO ProductImages (ProductID, ImageURL, IsPrimary) VALUES (?, ?, 1)";
                             try ( PreparedStatement psInsert = con.prepareStatement(sqlInsertImg)) {
@@ -151,9 +153,111 @@ public class ProductDAO {
                             }
                         }
                     }
-                }catch (Exception e) {
+                }
+            }
+        } catch (Exception e) {
             e.printStackTrace();
         }
-                return check;
+        return check;
+    }
+
+    // Hàm Xóa Mềm (Soft-delete): Chuyển Status về false (0) thay vì xóa vĩnh viễn
+    public boolean deleteProduct(String productID) {
+        boolean check = false;
+        String sql = "UPDATE Products SET Status = 0 WHERE ProductID = ?";
+
+        try ( Connection con = DBUtils.getConnection();  PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setInt(1, Integer.parseInt(productID));
+
+            int row = ps.executeUpdate();
+            if (row > 0) {
+                check = true;
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+        return check;
+    }
+
+    public boolean hardDeleteProduct(String productID) {
+        boolean check = false;
+        // Phải xóa ảnh ở bảng phụ trước
+        String sqlDeleteImages = "DELETE FROM ProductImages WHERE ProductID = ?";
+        // Sau đó mới xóa thông tin ở bảng chính
+        String sqlDeleteProduct = "DELETE FROM Products WHERE ProductID = ?";
+
+        try ( Connection con = DBUtils.getConnection()) {
+            // Tắt Auto-commit để gom 2 lệnh Delete vào chung 1 giao dịch (Transaction)
+            con.setAutoCommit(false);
+
+            try ( PreparedStatement psImg = con.prepareStatement(sqlDeleteImages);  PreparedStatement psProd = con.prepareStatement(sqlDeleteProduct)) {
+
+                int id = Integer.parseInt(productID);
+
+                // 1. Thực thi xóa ảnh
+                psImg.setInt(1, id);
+                psImg.executeUpdate();
+
+                // 2. Thực thi xóa sản phẩm
+                psProd.setInt(1, id);
+                int row = psProd.executeUpdate();
+
+                if (row > 0) {
+                    con.commit(); // Cả 2 lệnh đều trót lọt thì mới lưu vĩnh viễn vào DB
+                    check = true;
+                }
+            } catch (Exception ex) {
+                con.rollback(); // Lỗi ở đâu thì quay xe (hoàn tác) lại toàn bộ
+                ex.printStackTrace();
+            } finally {
+                con.setAutoCommit(true); // Trả lại trạng thái mặc định cho Connection
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return check;
+    }
+
+    // Lấy danh sách sản phẩm nằm trong Thùng rác (Status = 0)
+    public List<ProductDTO> getDeletedProducts() {
+        List<ProductDTO> list = new ArrayList<>();
+        String sql = "SELECT p.ProductID, p.ProductName, p.Description, p.BasePrice, p.CategoryID, p.Status, i.ImageURL "
+                + "FROM Products p LEFT JOIN ProductImages i ON p.ProductID = i.ProductID "
+                + "WHERE p.Status = 0 AND (i.IsPrimary = 1 OR i.ImageURL IS NULL)";
+
+        try ( Connection con = DBUtils.getConnection();  PreparedStatement ps = con.prepareStatement(sql);  ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                list.add(new ProductDTO(
+                        rs.getInt("ProductID"),
+                        rs.getNString("ProductName"),
+                        rs.getNString("Description"),
+                        rs.getDouble("BasePrice"),
+                        rs.getInt("CategoryID"),
+                        rs.getString("ImageURL"),
+                        rs.getBoolean("Status")
+                ));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public boolean restoreProduct(String productID) {
+        boolean check = false;
+        String sql = "UPDATE Products SET Status = 1 WHERE ProductID = ?";
+
+        try ( Connection con = DBUtils.getConnection();  PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setInt(1, Integer.parseInt(productID));
+            if (ps.executeUpdate() > 0) {
+                check = true;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return check;
+    }
+}

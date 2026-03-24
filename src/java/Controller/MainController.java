@@ -31,7 +31,7 @@ public class MainController extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
-        String url = "HomeController";
+        String url = "home.jsp";
 
         try {
             String action = request.getParameter("action");
@@ -43,37 +43,15 @@ public class MainController extends HttpServlet {
                     case "login":
                         url = "LoginController";
                         break;
-
                     case "logout":
                         url = "LogoutController";
                         break;
-
                     case "view-product":
                         url = "ProductController";
                         break;
-
-                    case "manage-product":
-                        url = "AdminProductController";
-                        break;
-
-                    case "add-product-page":
-                        url = "admin/add_product.jsp";
-                        break;
-                    case "add-product":
-                        url = "AddProductController";
-                        break;
-
-                    case "edit-product":
-                        url = "GetProductForEditController"; 
-                        break;
-                    case "delete-product":
-                        url = "DeleteProductController"; 
-                        break;
-
                     case "search":
                         url = "SearchController";
                         break;
-
                     case "add-to-cart":
                         url = "CartController";
                         break;

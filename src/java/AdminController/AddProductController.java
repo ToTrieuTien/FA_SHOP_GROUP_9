@@ -1,4 +1,4 @@
-package Controller;
+package AdminController;
 
 import DAO.ProductDAO;
 import java.io.File;

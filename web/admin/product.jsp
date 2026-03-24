@@ -17,30 +17,35 @@
     <div class="wrapper">
         <nav class="sidebar">
             <div class="sidebar-header">
-                <h2>ICONDENIM</h2>
+                <h2>TH True Fashion Shop</h2>
                 <p>Mã số: ${sessionScope.LOGIN_USER.userID}</p>
             </div>
             <ul class="sidebar-menu">
-                <li><a href="MainController?action=dashboard">Dashboard Overview</a></li>
-                <li class="active"><a href="MainController?action=manage-product">Quản lý Sản Phẩm</a></li>
-                <li><a href="MainController?action=manage-category">Quản lý Danh Mục</a></li>
-                <li><a href="MainController?action=manage-order">Đơn Hàng</a></li>
-                <li><a href="MainController?action=manage-customer">Khách Hàng</a></li>
-                <li><a href="MainController?action=logout">Đăng Xuất</a></li>
+                <li><a href="AdminMainController?action=dashboard">Dashboard Overview</a></li>
+                <li class="active"><a href="AdminMainController?action=manage-product">Quản lý Sản Phẩm</a></li>
+                <li><a href="AdminMainController?action=manage-category">Quản lý Danh Mục</a></li>
+                <li><a href="AdminMainController?action=manage-order">Đơn Hàng</a></li>
+                <li><a href="AdminMainController?action=manage-customer">Khách Hàng</a></li>
+                <li><a href="AdminMainController?action=logout">Đăng Xuất</a></li>
             </ul>
         </nav>
 
-        <main class="main-content">
+        <main class="main-content">      
             <div class="page-header">
                 <h1 class="dashboard-title">Quản lý Sản Phẩm</h1>
-                <a href="MainController?action=add-product-page" class="btn-primary">+ Thêm Sản Phẩm Mới</a>
+                <div>
+                    <a href="AdminMainController?action=recycle-bin" class="btn-primary" style="background-color: #ef4444; margin-right: 10px;">
+                        <i class="fas fa-trash"></i> Thùng Rác
+                    </a>
+                    <a href="AdminMainController?action=add-product-page" class="btn-primary">+ Thêm Sản Phẩm Mới</a>
+                </div>
             </div>
 
             <div class="data-board">
                 <div class="data-board-header">
                     <h3>Danh sách sản phẩm</h3>
                     <div class="search-box">
-                        <form action="MainController" method="GET">
+                        <form action="AdminMainController" method="GET">
                             <input type="hidden" name="action" value="search-admin-product">
                             <input type="text" name="txtSearch" placeholder="Tìm kiếm sản phẩm...">
                         </form>
@@ -87,12 +92,12 @@
                                 </td>
                                 
                                 <td class="action-cell">
-                                    <a href="MainController?action=edit-product&id=${p.productID}" 
+                                    <a href="AdminMainController?action=edit-product&id=${p.productID}" 
                                        class="btn-edit" title="Sửa">
                                         <i class="fas fa-pen"></i>
                                     </a>
                                     
-                                    <a href="MainController?action=delete-product&id=${p.productID}" 
+                                    <a href="AdminMainController?action=delete-product&id=${p.productID}" 
                                        class="btn-delete" title="Xóa" 
                                        onclick="return confirm('Xác nhận xóa sản phẩm: ${p.productName}?');">
                                         <i class="fas fa-trash"></i>
