@@ -1,0 +1,13 @@
+# Chặn thư mục build và kết quả biên dịch
+/build/
+/nbbuild/
+/dist/
+/nbdist/
+
+# Chặn các cài đặt cá nhân của NetBeans
+/nbproject/private/
+
+# Chặn các file rác của hệ điều hành
+Thumbs.db
+.DS_Store
+*.log
