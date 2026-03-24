@@ -5,22 +5,25 @@
 package AdminController;
 
 import DAO.ProductDAO;
-import DTO.ProductDTO;
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.List;
+import java.nio.file.Paths;
 import javax.servlet.ServletException;
+import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.Part;
 
 /**
  *
  * @author FPT
  */
-@WebServlet(name = "AdminProductController", urlPatterns = {"/AdminProductController"})
-public class AdminProductController extends HttpServlet {
+@MultipartConfig(fileSizeThreshold = 1024 * 1024 * 2, maxFileSize = 1024 * 1024 * 10, maxRequestSize = 1024 * 1024 * 50)
+@WebServlet(name = "UpdateProductController", urlPatterns = {"/UpdateProductController"})
+public class UpdateProductController extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -33,26 +36,45 @@ public class AdminProductController extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        request.setCharacterEncoding("UTF-8");
+        response.setCharacterEncoding("UTF-8");
         response.setContentType("text/html;charset=UTF-8");
-        String url = "admin/admin_product.jsp";
-        
         try {
-            // 1. Khởi tạo DAO
+            int productID = Integer.parseInt(request.getParameter("txtProductID"));
+            String productName = request.getParameter("txtProductName");
+            double price = Double.parseDouble(request.getParameter("txtPrice"));
+            int categoryID = Integer.parseInt(request.getParameter("ddlCategory"));
+            boolean status = Boolean.parseBoolean(request.getParameter("ddlStatus"));
+
+            String fileName = null;
+            Part part = request.getPart("fileImage");
+            
+            // Kiểm tra xem Admin có chọn file ảnh mới không
+            if (part != null && part.getSize() > 0) {
+                fileName = Paths.get(part.getSubmittedFileName()).getFileName().toString();
+                String uploadPath = request.getServletContext().getRealPath("") + File.separator + "images";
+                File uploadDir = new File(uploadPath);
+                if (!uploadDir.exists()) uploadDir.mkdir();
+                // Lưu file mới vào thư mục
+                part.write(uploadPath + File.separator + fileName);
+            }
+
+            // Gọi DAO để Update
             ProductDAO dao = new ProductDAO();
-            
-            // 2. Gọi hàm lấy toàn bộ danh sách sản phẩm
-            List<ProductDTO> list = dao.getAllProducts();
-            
-            // 3. Đóng gói danh sách vào request để gửi sang JSP
-            request.setAttribute("LIST_PRODUCT", list);
-            
+            boolean check = dao.updateProduct(productID, productName, price, categoryID, status, fileName);
+
+            if (check) {
+                response.sendRedirect("MainController?action=manage-product");
+            } else {
+                response.getWriter().println("Lỗi khi cập nhật Database!");
+            }
+
         } catch (Exception e) {
-            log("Error at AdminProductController: " + e.toString());
-        } finally {
-            // 4. Chuyển tiếp (forward) request và response sang trang JSP
-            request.getRequestDispatcher("admin/product.jsp").forward(request, response);
+            e.printStackTrace();
+            response.getWriter().println("Lỗi Server: " + e.getMessage());
         }
     }
+
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**

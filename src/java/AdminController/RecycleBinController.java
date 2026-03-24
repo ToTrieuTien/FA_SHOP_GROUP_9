@@ -19,8 +19,8 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author FPT
  */
-@WebServlet(name = "AdminProductController", urlPatterns = {"/AdminProductController"})
-public class AdminProductController extends HttpServlet {
+@WebServlet(name = "RecycleBinController", urlPatterns = {"/RecycleBinController"})
+public class RecycleBinController extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -34,23 +34,19 @@ public class AdminProductController extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
-        String url = "admin/admin_product.jsp";
-        
         try {
-            // 1. Khởi tạo DAO
             ProductDAO dao = new ProductDAO();
-            
-            // 2. Gọi hàm lấy toàn bộ danh sách sản phẩm
-            List<ProductDTO> list = dao.getAllProducts();
-            
-            // 3. Đóng gói danh sách vào request để gửi sang JSP
-            request.setAttribute("LIST_PRODUCT", list);
-            
+            // Lấy danh sách sản phẩm đã xóa mềm
+            List<ProductDTO> list = dao.getDeletedProducts();
+
+            // Đẩy dữ liệu lên request để JSP bắt lấy bằng vòng lặp
+            request.setAttribute("LIST_DELETED_PRODUCT", list);
+
+            // Chuyển hướng sang giao diện Thùng rác
+            request.getRequestDispatcher("admin/recycle_bin.jsp").forward(request, response);
+
         } catch (Exception e) {
-            log("Error at AdminProductController: " + e.toString());
-        } finally {
-            // 4. Chuyển tiếp (forward) request và response sang trang JSP
-            request.getRequestDispatcher("admin/product.jsp").forward(request, response);
+            log("Error at RecycleBinController: " + e.toString());
         }
     }
 

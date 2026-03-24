@@ -51,12 +51,13 @@ public class LoginController extends HttpServlet {
 
                 // Phân quyền
                 if (user.getRoleID() == 1) {
-                    // Dùng sendRedirect để dứt điểm request cũ, sang thẳng Dashboard
-                    response.sendRedirect("admin/dashboard.jsp");
+                    // Của bạn kia: Chuyển thẳng về Controller Admin mới tạo
+                    response.sendRedirect("AdminMainController?action=dashboard");
                 } else {
-                    // Khách hàng -> Chuyển thẳng tới HomeServlet để nó load danh sách sản phẩm
-                    response.sendRedirect("HomeServlet"); 
+                    // Của bạn: Khách hàng -> Chuyển thẳng tới Trang chủ
+                    response.sendRedirect("MainController"); 
                 }
+                return; // Chặn luồng chạy tiếp
             } else {
                 // Đăng nhập thất bại -> Trả về login.jsp kèm báo lỗi
                 request.setAttribute("ERROR", "Email/Tên đăng nhập hoặc mật khẩu không đúng!");
@@ -68,8 +69,6 @@ public class LoginController extends HttpServlet {
             request.setAttribute("ERROR", "Hệ thống đang gặp lỗi!");
             request.getRequestDispatcher("login.jsp").forward(request, response);
         }
-        
-        // Đã XÓA khối finally chứa lệnh forward ở đây để triệt tiêu lỗi vòng lặp 500
     }
 
     @Override

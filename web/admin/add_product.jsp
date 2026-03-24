@@ -19,7 +19,7 @@
                 <p>Mã số: ${sessionScope.LOGIN_USER.userID}</p>
             </div>
             <ul class="sidebar-menu">
-                <li><a href="MainController?action=manage-product">Quay lại Quản lý</a></li>
+                <li><a href="AdminMainController?action=manage-product">Quay lại Quản lý</a></li>
             </ul>
         </nav>
 

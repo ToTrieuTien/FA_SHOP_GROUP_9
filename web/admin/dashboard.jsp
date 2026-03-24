@@ -10,16 +10,16 @@
         <div class="wrapper">
             <nav class="sidebar">
                 <div class="sidebar-header">
-                    <h2>ICONDENIM</h2>
+                    <h2>TH True Fashion Shop</h2>
                     <p>Mã số: ${sessionScope.LOGIN_USER.userID}</p>
                 </div>
                 <ul class="sidebar-menu">
                     <li class="active"><a href="#">Dashboard Overview</a></li>
-                    <li><a href="MainController?action=manage-product">Quản lý Sản Phẩm</a></li>
-                    <li><a href="MainController?action=manage-category">Quản lý Danh Mục</a></li>
-                    <li><a href="MainController?action=manage-order">Đơn Hàng</a></li>
-                    <li><a href="MainController?action=manage-customer">Khách Hàng</a></li>
-                    <li><a href="MainController?action=logout">Đăng Xuất</a></li>
+                    <li><a href="AdminMainController?action=manage-product">Quản lý Sản Phẩm</a></li>
+                    <li><a href="AdminMainController?action=manage-category">Quản lý Danh Mục</a></li>
+                    <li><a href="AdminMainController?action=manage-order">Đơn Hàng</a></li>
+                    <li><a href="AdminMainController?action=manage-customer">Khách Hàng</a></li>
+                    <li><a href="AdminMainController?action=logout">Đăng Xuất</a></li>
                 </ul>
             </nav>
 
