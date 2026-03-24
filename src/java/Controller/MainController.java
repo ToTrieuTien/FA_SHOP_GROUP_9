@@ -31,13 +31,13 @@ public class MainController extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
-        String url = "HomeController";
+        String url = "HomeServlet";
 
         try {
             String action = request.getParameter("action");
 
             if (action == null || action.isEmpty()) {
-                url = "HomeController";
+                url = "HomeServlet";
             } else {
                 switch (action) {
                     case "login":
@@ -73,9 +73,22 @@ public class MainController extends HttpServlet {
                     case "search":
                         url = "SearchController";
                         break;
+                        
+                    case "search-admin-product":
+                        url = "SearchAdminProductController";
+                        break;
 
                     case "add-to-cart":
                         url = "CartController";
+                        break;
+                        
+                    case "view-cart":
+                        url = "cart.jsp";
+                        break;
+                        
+                        
+                    case "remove-from-cart":
+                        url = "CartController"; 
                         break;
 
                     default:

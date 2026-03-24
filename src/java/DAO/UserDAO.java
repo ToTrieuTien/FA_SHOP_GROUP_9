@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package DAO;
 
 import DTO.UserDTO;
@@ -9,25 +5,29 @@ import Utils.DBUtils;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.sql.SQLException;
 
 /**
- *
  * @author FPT
  */
-public class UserDAO  {
-    public UserDTO checkLogin(String email, String password) {
+public class UserDAO {
+
+    /**
+     * Hàm kiểm tra đăng nhập bằng cả Email hoặc UserID
+     */
+    public UserDTO checkLogin(String loginID, String password) {
         UserDTO user = null;
+        // Dùng OR để kiểm tra khớp Email hoặc khớp UserID
         String sql = "SELECT UserID, FullName, Email, RoleID, Status, Phone, Address "
                    + "FROM Users "
-                   + "WHERE Email = ? AND Password = ? AND Status = 1";
+                   + "WHERE (Email = ? OR UserID = ?) AND Password = ? AND Status = 1";
 
         try (Connection con = DBUtils.getConnection(); 
              PreparedStatement ps = con.prepareStatement(sql)) {
             
-            ps.setString(1, email);
-            ps.setString(2, password);
+            ps.setString(1, loginID);   // Dấu ? thứ 1 (dành cho Email)
+            ps.setString(2, loginID);   // Dấu ? thứ 2 (dành cho UserID)
+            ps.setString(3, password);  // Dấu ? thứ 3 (dành cho Password)
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -46,6 +46,35 @@ public class UserDAO  {
         }
         return user;
     }
-}
-    
 
+    /**
+     * Hàm đăng ký thành viên mới
+     */
+    public boolean insert(UserDTO user) throws Exception {
+        boolean check = false;
+        Connection conn = null;
+        PreparedStatement stm = null;
+        try {
+            conn = DBUtils.getConnection();
+            if (conn != null) {
+                String sql = "INSERT INTO Users(UserID, FullName, RoleID, Password, Address, Phone, Email, Status) "
+                           + " VALUES(?,?,?,?,?,?,?,?)";
+                stm = conn.prepareStatement(sql);
+                stm.setString(1, user.getUserID());
+                stm.setString(2, user.getFullName());
+                stm.setInt(3, user.getRoleID());
+                stm.setString(4, user.getPassword());
+                stm.setString(5, user.getAddress());
+                stm.setString(6, user.getPhone());
+                stm.setString(7, user.getEmail());
+                stm.setBoolean(8, true); // Mặc định Status là true (1)
+                
+                check = stm.executeUpdate() > 0;
+            }
+        } finally {
+            if (stm != null) stm.close();
+            if (conn != null) conn.close();
+        }
+        return check;
+    }
+}

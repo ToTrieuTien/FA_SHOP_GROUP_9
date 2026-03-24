@@ -1,87 +1,93 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
- */
 package Controller;
 
+import DAO.ProductDAO;
+import DTO.ProductDTO;
+import DTO.UserDTO;
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
-/**
- *
- * @author FPT
- */
-@WebServlet(name = "CartServlet", urlPatterns = {"/CartServlet"})
+@WebServlet(name = "CartController", urlPatterns = {"/CartController"})
 public class CartController extends HttpServlet {
 
-    /**
-     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
-     * methods.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
-        try ( PrintWriter out = response.getWriter()) {
-            /* TODO output your page here. You may use following sample code. */
-            out.println("<!DOCTYPE html>");
-            out.println("<html>");
-            out.println("<head>");
-            out.println("<title>Servlet CartServlet</title>");            
-            out.println("</head>");
-            out.println("<body>");
-            out.println("<h1>Servlet CartServlet at " + request.getContextPath() + "</h1>");
-            out.println("</body>");
-            out.println("</html>");
+        try {
+            HttpSession session = request.getSession();
+            
+            // --- CHỐT CHẶN BẢO MẬT: BẮT BUỘC ĐĂNG NHẬP MỚI ĐƯỢC DÙNG GIỎ HÀNG ---
+            UserDTO loginUser = (UserDTO) session.getAttribute("LOGIN_USER");
+            if (loginUser == null) {
+                // Lưu câu báo lỗi vào Session
+                session.setAttribute("LOGIN_ERROR", "Bạn phải đăng nhập để thêm sản phẩm vào giỏ hàng!");
+                // Đá về trang đăng nhập ngay lập tức
+                response.sendRedirect("login.jsp");
+                return; 
+            }
+
+            String action = request.getParameter("action");
+            
+            // Lấy giỏ hàng hiện tại
+            List<ProductDTO> cart = (List<ProductDTO>) session.getAttribute("CART");
+            if (cart == null) {
+                cart = new ArrayList<>();
+            }
+
+            // Xử lý THÊM vào giỏ
+            if ("add-to-cart".equals(action)) {
+                String productID = request.getParameter("productID");
+                if (productID != null) {
+                    ProductDAO dao = new ProductDAO();
+                    ProductDTO product = dao.getProductByID(productID);
+                    if (product != null) {
+                        cart.add(product); 
+                        // Kích hoạt thông báo Toast thành công
+                        session.setAttribute("SUCCESS_MSG", "Đã thêm [" + product.getProductName() + "] vào giỏ hàng!");
+                    }
+                }
+                session.setAttribute("CART", cart);
+                // Đá về trang chủ
+                response.sendRedirect("MainController"); 
+                return; 
+            } 
+            // Xử lý XÓA khỏi giỏ
+            else if ("remove-from-cart".equals(action)) {
+                String removeID = request.getParameter("id");
+                if (removeID != null) {
+                    int idToRemove = Integer.parseInt(removeID);
+                    for (int i = 0; i < cart.size(); i++) {
+                        if (cart.get(i).getProductID() == idToRemove) {
+                            cart.remove(i); 
+                            break; 
+                        }
+                    }
+                }
+                session.setAttribute("CART", cart);
+                response.sendRedirect("MainController?action=view-cart");
+                return;
+            }
+
+        } catch (Exception e) {
+            log("Error at CartController: " + e.toString());
         }
     }
 
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
-    /**
-     * Handles the HTTP <code>GET</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         processRequest(request, response);
     }
 
-    /**
-     * Handles the HTTP <code>POST</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         processRequest(request, response);
     }
-
-    /**
-     * Returns a short description of the servlet.
-     *
-     * @return a String containing servlet description
-     */
-    @Override
-    public String getServletInfo() {
-        return "Short description";
-    }// </editor-fold>
-
 }

@@ -116,44 +116,62 @@ public class ProductDAO {
         return null; // Trả về null nếu không tìm thấy sản phẩm
     }
 
-    public boolean updateProduct(int id, String name, double price, int catID, boolean status, String fileName) {
-        boolean check = false;
-        String sqlProduct = "UPDATE Products SET ProductName=?, BasePrice=?, CategoryID=?, Status=? WHERE ProductID=?";
+public boolean updateProduct(int id, String name, double price, int catID, boolean status, String fileName) {
+    boolean check = false;
+    String sqlProduct = "UPDATE Products SET ProductName=?, BasePrice=?, CategoryID=?, Status=? WHERE ProductID=?";
 
-        try ( Connection con = DBUtils.getConnection();  PreparedStatement psProduct = con.prepareStatement(sqlProduct)) {
+    try (Connection con = DBUtils.getConnection();
+         PreparedStatement psProduct = con.prepareStatement(sqlProduct)) {
 
-            psProduct.setNString(1, name);
-            psProduct.setDouble(2, price);
-            psProduct.setInt(3, catID);
-            psProduct.setBoolean(4, status);
-            psProduct.setInt(5, id);
+        psProduct.setNString(1, name);
+        psProduct.setDouble(2, price);
+        psProduct.setInt(3, catID);
+        psProduct.setBoolean(4, status);
+        psProduct.setInt(5, id);
 
-            int row = psProduct.executeUpdate();
+        int row = psProduct.executeUpdate();
 
-            if (row > 0) {
-                check = true; // Cập nhật chữ thành công
+        if (row > 0) {
+            check = true;
 
-                // Nếu có file ảnh mới thì cập nhật bảng ProductImages
-                if (fileName != null && !fileName.isEmpty()) {
-                    String sqlImage = "UPDATE ProductImages SET ImageURL=? WHERE ProductID=?";
-                    try ( PreparedStatement psImage = con.prepareStatement(sqlImage)) {
-                        psImage.setString(1, fileName);
-                        psImage.setInt(2, id);
-                        int updatedRows = psImage.executeUpdate(); // Kiểm tra xem có dòng nào được update không
+            if (fileName != null && !fileName.isEmpty()) {
+                String sqlImage = "UPDATE ProductImages SET ImageURL=? WHERE ProductID=?";
+                
+                try (PreparedStatement psImage = con.prepareStatement(sqlImage)) {
+                    psImage.setString(1, fileName);
+                    psImage.setInt(2, id);
+                    int updatedRows = psImage.executeUpdate();
 
-                        // THẦN CHÚ Ở ĐÂY: Nếu không có dòng nào được update (nghĩa là SP chưa có ảnh) -> Ta phải INSERT mới
-                        if (updatedRows == 0) {
-                            String sqlInsertImg = "INSERT INTO ProductImages (ProductID, ImageURL, IsPrimary) VALUES (?, ?, 1)";
-                            try ( PreparedStatement psInsert = con.prepareStatement(sqlInsertImg)) {
-                                psInsert.setInt(1, id);
-                                psInsert.setString(2, fileName);
-                                psInsert.executeUpdate();
-                            }
+                    if (updatedRows == 0) {
+                        String sqlInsertImg = "INSERT INTO ProductImages (ProductID, ImageURL, IsPrimary) VALUES (?, ?, 1)";
+                        
+                        try (PreparedStatement psInsert = con.prepareStatement(sqlInsertImg)) {
+                            psInsert.setInt(1, id);
+                            psInsert.setString(2, fileName);
+                            psInsert.executeUpdate();
                         }
                     }
-                }catch (Exception e) {
-            e.printStackTrace();
-        }
-                return check;
+                }
             }
         }
+
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+
+    return check;
+}
+// Hàm xóa (ẩn) sản phẩm
+    public boolean deleteProduct(int productID) {
+        boolean check = false;
+        String sql = "UPDATE Products SET Status = 0 WHERE ProductID = ?";
+        try (Connection con = DBUtils.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, productID);
+            check = ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return check;
+    }
+}
