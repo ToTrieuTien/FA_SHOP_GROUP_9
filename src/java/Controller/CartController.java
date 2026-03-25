@@ -1,11 +1,10 @@
 package Controller;
 
 import DAO.ProductDAO;
+import DTO.CartDTO;
 import DTO.ProductDTO;
 import DTO.UserDTO;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -21,7 +20,7 @@ public class CartController extends HttpServlet {
         response.setContentType("text/html;charset=UTF-8");
         try {
             HttpSession session = request.getSession();
-            
+
             // --- CHỐT CHẶN BẢO MẬT: BẮT BUỘC ĐĂNG NHẬP MỚI ĐƯỢC DÙNG GIỎ HÀNG ---
             UserDTO loginUser = (UserDTO) session.getAttribute("LOGIN_USER");
             if (loginUser == null) {
@@ -29,45 +28,39 @@ public class CartController extends HttpServlet {
                 session.setAttribute("LOGIN_ERROR", "Bạn phải đăng nhập để thêm sản phẩm vào giỏ hàng!");
                 // Đá về trang đăng nhập ngay lập tức
                 response.sendRedirect("login.jsp");
-                return; 
+                return;
             }
 
             String action = request.getParameter("action");
-            
-            // Lấy giỏ hàng hiện tại
-            List<ProductDTO> cart = (List<ProductDTO>) session.getAttribute("CART");
+
+            // Thay vì dùng List, hãy dùng CartDTO để khớp với CheckoutController
+            CartDTO cart = (CartDTO) session.getAttribute("CART");
             if (cart == null) {
-                cart = new ArrayList<>();
+                cart = new CartDTO();
             }
 
-            // Xử lý THÊM vào giỏ
+// Khi thêm sản phẩm, dùng phương thức add() của CartDTO (giả sử class CartDTO của bạn có hàm add)
             if ("add-to-cart".equals(action)) {
                 String productID = request.getParameter("productID");
                 if (productID != null) {
                     ProductDAO dao = new ProductDAO();
+                    // Lấy sản phẩm từ DB dựa trên ID người dùng gửi lên
                     ProductDTO product = dao.getProductByID(productID);
+
                     if (product != null) {
-                        cart.add(product); 
-                        // Kích hoạt thông báo Toast thành công
-                        session.setAttribute("SUCCESS_MSG", "Đã thêm [" + product.getProductName() + "] vào giỏ hàng!");
+                        cart.add(product); // Bây giờ biến 'product' đã tồn tại và có dữ liệu
+                        session.setAttribute("CART", cart);
+                        session.setAttribute("SUCCESS_MSG", "Đã thêm vào giỏ hàng!");
                     }
                 }
-                session.setAttribute("CART", cart);
-                // Đá về trang chủ
-                response.sendRedirect("MainController"); 
-                return; 
-            } 
-            // Xử lý XÓA khỏi giỏ
+                response.sendRedirect("MainController");
+                return;
+            } // Xử lý XÓA khỏi giỏ
             else if ("remove-from-cart".equals(action)) {
                 String removeID = request.getParameter("id");
                 if (removeID != null) {
-                    int idToRemove = Integer.parseInt(removeID);
-                    for (int i = 0; i < cart.size(); i++) {
-                        if (cart.get(i).getProductID() == idToRemove) {
-                            cart.remove(i); 
-                            break; 
-                        }
-                    }
+                    int idToRemove = Integer.parseInt(removeID); // Ép sang kiểu int
+                    cart.remove(idToRemove); // Gọi hàm đã sửa trong CartDTO
                 }
                 session.setAttribute("CART", cart);
                 response.sendRedirect("MainController?action=view-cart");

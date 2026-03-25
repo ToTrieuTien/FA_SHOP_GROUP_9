@@ -44,7 +44,7 @@
                     <span style="margin-right: 20px; font-size: 15px;">Xin chào, <b>${sessionScope.LOGIN_USER.fullName}</b>!</span>
                     <a href="MainController" style="color: white; text-decoration: none; margin-right: 20px; font-size: 15px;">Trang chủ</a>
                     <a href="MainController?action=view-cart" style="color: #4CAF50; text-decoration: none; margin-right: 20px; font-weight: bold; font-size: 15px;">
-                        🛒 Giỏ hàng (<c:out value="${sessionScope.CART != null ? sessionScope.CART.size() : 0}"/>)
+                        🛒 Giỏ hàng (<c:out value="${sessionScope.CART != null ? sessionScope.CART.cart.size() : 0}"/>)
                     </a>
                     <a href="MainController?action=logout" style="color: #ff4d4d; text-decoration: none; font-weight: bold; font-size: 15px;">Đăng xuất</a>
                 </c:when>
