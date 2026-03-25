@@ -39,29 +39,68 @@ public class CartController extends HttpServlet {
                 cart = new CartDTO();
             }
 
-// Khi thêm sản phẩm, dùng phương thức add() của CartDTO (giả sử class CartDTO của bạn có hàm add)
             if ("add-to-cart".equals(action)) {
                 String productID = request.getParameter("productID");
-                if (productID != null) {
+                String variantID = request.getParameter("variantID");
+
+                // Chỉ cần productID để bắt đầu xử lý
+                if (productID != null && !productID.isEmpty()) {
                     ProductDAO dao = new ProductDAO();
-                    // Lấy sản phẩm từ DB dựa trên ID người dùng gửi lên
                     ProductDTO product = dao.getProductByID(productID);
 
                     if (product != null) {
-                        cart.add(product); // Bây giờ biến 'product' đã tồn tại và có dữ liệu
+                        product.setQuantity(1);
+
+                        // KIỂM TRA VARIANTID: Nếu null thì gán tạm giá trị mặc định (ví dụ: 1)
+                        if (variantID != null && !variantID.isEmpty()) {
+                            try {
+                                product.setVariantID(Integer.parseInt(variantID));
+                            } catch (NumberFormatException e) {
+                                product.setVariantID(1); // Backup nếu parse lỗi
+                            }
+                        } else {
+                            product.setVariantID(1); // Giá trị mặc định để không bị lỗi CSDL sau này
+                        }
+
+                        cart.add(product);
                         session.setAttribute("CART", cart);
                         session.setAttribute("SUCCESS_MSG", "Đã thêm vào giỏ hàng!");
                     }
                 }
+                // Đảm bảo lệnh redirect này nằm đúng luồng
                 response.sendRedirect("MainController");
                 return;
             } // Xử lý XÓA khỏi giỏ
             else if ("remove-from-cart".equals(action)) {
                 String removeID = request.getParameter("id");
                 if (removeID != null) {
-                    int idToRemove = Integer.parseInt(removeID); // Ép sang kiểu int
-                    cart.remove(idToRemove); // Gọi hàm đã sửa trong CartDTO
+                    try {
+                        int idToRemove = Integer.parseInt(removeID);
+                        cart.remove(idToRemove);
+                    } catch (NumberFormatException e) {
+                        log("Invalid ID: " + removeID);
+                    }
                 }
+                session.setAttribute("CART", cart);
+                response.sendRedirect("MainController?action=view-cart");
+                return;
+                //Xử lý cập nhật
+            } else if ("update-cart".equals(action)) {
+                try {
+                    int id = Integer.parseInt(request.getParameter("id"));
+                    int quantity = Integer.parseInt(request.getParameter("quantity"));
+
+                    cart.update(id, quantity);
+                } catch (Exception e) {
+                    log("Update error");
+                }
+
+                session.setAttribute("CART", cart);
+                response.sendRedirect("MainController?action=view-cart");
+                return;
+            } //Xử lý xóa hết giở hàng
+            else if ("clear-cart".equals(action)) {
+                cart.clear();
                 session.setAttribute("CART", cart);
                 response.sendRedirect("MainController?action=view-cart");
                 return;

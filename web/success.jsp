@@ -5,6 +5,7 @@
 --%>
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <!DOCTYPE html>
 <html>
     <head>
@@ -16,10 +17,11 @@
             <h1 style="color: #000; letter-spacing: 2px;">TH TRUESHOP</h1>
             <hr style="width: 50px; border: 1px solid #000; margin: 20px auto;">
             <h2 style="font-weight: 300;">CẢM ƠN BẠN ĐÃ ĐẶT HÀNG!</h2>
-            <p>${requestScope.SUCCESS_MSG}</p>
+            <p>${sessionScope.SUCCESS_MSG}</p>
+            <c:remove var="SUCCESS_MSG" scope="session"/>
             <p style="color: #666; font-size: 14px;">Chúng tôi sẽ liên hệ với bạn sớm nhất để xác nhận đơn hàng.</p>
             <br>
-            <a href="MainController?action=HomeController" 
+            <a href="MainController" 
                style="background: #000; color: #fff; padding: 12px 30px; text-decoration: none; display: inline-block; margin-top: 20px;">
                 TIẾP TỤC MUA SẮM
             </a>

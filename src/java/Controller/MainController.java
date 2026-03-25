@@ -36,9 +36,20 @@ public class MainController extends HttpServlet {
                     case "recycle-bin": url = "RecycleBinController"; break;
                     case "restore-product": url = "RestoreProductController"; break;
                     case "hard-delete-product": url = "HardDeleteProductController"; break;
-                    //Chuc nang thanh toan_To Trieu Tien
+                    //Chuc nang thanh toan To Trieu Tien
                     case "checkout":
                         url = "CheckoutController";
+                        break;
+                    //Chuc nang cap nhat và xoa gio hang To Trieu Tien
+                    case "update-cart":
+                        url = "CartController";
+                        break;
+                    case "clear-cart":
+                        url = "CartController";
+                        break;
+                    //Trả về trang success sau khi thanh tons thành công trên CheckoutController Tô Triệu Tiến
+                    case "success":
+                        url = "success.jsp";
                         break;
 
                     default:

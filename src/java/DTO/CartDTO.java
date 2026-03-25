@@ -17,6 +17,7 @@ public class CartDTO {
     private Map<Integer, ProductDTO> cart;
 
     public CartDTO() {
+        this.cart = new HashMap<>();
     }
 
     public CartDTO(Map<Integer, ProductDTO> cart) {
@@ -31,12 +32,13 @@ public class CartDTO {
         if (this.cart == null) {
             this.cart = new HashMap<>();
         }
-        // Nếu sản phẩm đã có trong giỏ, tăng số lượng
+
         if (this.cart.containsKey(product.getProductID())) {
-            int currentQuantity = this.cart.get(product.getProductID()).getQuantity();
-            product.setQuantity(currentQuantity + product.getQuantity());
+            ProductDTO existing = this.cart.get(product.getProductID());
+            existing.setQuantity(existing.getQuantity() + product.getQuantity());
+        } else {
+            this.cart.put(product.getProductID(), product);
         }
-        cart.put(product.getProductID(), product);
     }
     public void remove(int id) { // Đổi String thành int
         if (this.cart == null) {
@@ -51,11 +53,21 @@ public class CartDTO {
         if (this.cart == null) {
             return;
         }
+
         if (this.cart.containsKey(id)) {
-            this.cart.get(id).setQuantity(quantity);
+            if (quantity <= 0) {
+                this.cart.remove(id); // xóa luôn
+            } else {
+                this.cart.get(id).setQuantity(quantity);
+            }
         }
     }
 
+    public void clear() {
+        if (this.cart != null) {
+            this.cart.clear();
+        }
+    }
     public int getSize() {
         if (this.cart == null) {
             return 0;

@@ -16,6 +16,8 @@ public class ProductDTO {
     private int categoryID;
     private String imageURL;
     private boolean status;
+    
+    private int variantID;
 
     public ProductDTO() {
     }
@@ -97,4 +99,18 @@ public class ProductDTO {
     public void setQuantity(int quantity) {
         this.quantity = quantity;
     }
+    
+    public double getTotalPrice() {
+        return basePrice * quantity;
+    }
+
+    public int getVariantID() {
+        return variantID;
+    }
+
+    public void setVariantID(int variantID) {
+        this.variantID = variantID;
+    }
+    
+    
 }

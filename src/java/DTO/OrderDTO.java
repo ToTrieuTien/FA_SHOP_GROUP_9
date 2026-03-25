@@ -11,8 +11,10 @@ public class OrderDTO {
     private String phone;
     private String status;
 
-    public OrderDTO() {}
+    public OrderDTO() {
+    }
 
+    
     public OrderDTO(int orderID, String userID, Timestamp orderDate, double totalMoney, String shippingAddress, String phone, String status) {
         this.orderID = orderID;
         this.userID = userID;
@@ -78,5 +80,6 @@ public class OrderDTO {
     public void setStatus(String status) {
         this.status = status;
     }
-
-}
+    
+    
+}    

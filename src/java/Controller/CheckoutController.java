@@ -1,6 +1,6 @@
 /*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
+     * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+     * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
  */
 package Controller;
 
@@ -41,54 +41,72 @@ public class CheckoutController extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
-        String url = "MainController?action=view-cart"; // Mặc định quay lại giỏ hàng nếu lỗi
+        HttpSession session = request.getSession();
 
         try {
-            HttpSession session = request.getSession();
+            // 1. Kiểm tra quyền truy cập (User phải đăng nhập mới được checkout)
             UserDTO loginUser = (UserDTO) session.getAttribute("LOGIN_USER");
-
-            // 1. Kiểm tra đăng nhập
             if (loginUser == null) {
-                url = "login.jsp";
+                response.sendRedirect("login.jsp");
+                return; // Ngắt luồng xử lý
+            }
+
+            // 2. Kiểm tra giỏ hàng (Phải có hàng mới cho thanh toán)
+            CartDTO cart = (CartDTO) session.getAttribute("CART");
+            if (cart == null || cart.getCart().isEmpty()) {
+                response.sendRedirect("MainController?action=view-cart");
+                return;
+            }
+
+            // 3. Thu thập dữ liệu từ Form gửi lên
+            String phone = request.getParameter("phone");
+            String address = request.getParameter("shippingAddress");
+            String paymentMethod = request.getParameter("paymentMethod");
+            String totalRaw = request.getParameter("totalMoney");
+            double total = (totalRaw != null && !totalRaw.isEmpty()) ? Double.parseDouble(totalRaw) : 0;
+
+            // 4. Validation (Kiểm tra dữ liệu đầu vào lần cuối)
+            if (phone == null || phone.trim().isEmpty() || address == null || address.trim().isEmpty()) {
+                request.setAttribute("ERROR", "Vui lòng cung cấp đầy đủ thông tin giao hàng!");
+                request.getRequestDispatcher("cart.jsp").forward(request, response);
+                return;
+            }
+
+            // 5. Khởi tạo đối tượng Order để lưu vào Database
+            OrderDTO order = new OrderDTO();
+            order.setUserID(loginUser.getUserID());
+            order.setOrderDate(new java.sql.Timestamp(System.currentTimeMillis()));
+            order.setTotalMoney(total);
+            order.setShippingAddress(address);
+            order.setPhone(phone);
+
+            // Thiết lập trạng thái đơn hàng dựa trên phương thức thanh toán
+            order.setStatus("QR".equals(paymentMethod) ? "Awaiting Payment" : "Processing");
+
+            // Lấy danh sách sản phẩm từ giỏ hàng để lưu vào chi tiết đơn hàng
+            List<OrderDetailDTO> listDetail = new ArrayList<>();
+            for (ProductDTO item : cart.getCart().values()) {
+                listDetail.add(new OrderDetailDTO(0, 0, item.getProductID(), item.getQuantity(), item.getTotalPrice()));
+            }
+
+            OrderDAO dao = new OrderDAO();
+// Truyền danh sách đã xử lý vào DAO
+            boolean isSuccess = dao.insertOrder(order, listDetail);
+
+            if (isSuccess) {
+                // Thanh toán thành công: Xóa giỏ hàng và chuyển hướng sang trang success
+                session.removeAttribute("CART");
+                session.setAttribute("SUCCESS_MSG", "Đơn hàng của bạn đã được ghi nhận!");
+                response.sendRedirect("success.jsp");
             } else {
-                CartDTO cart = (CartDTO) session.getAttribute("CART");
-                if (cart != null && !cart.getCart().isEmpty()) {
-
-                    // 2. Lấy thông tin từ Form (Phone và Address)
-                    String phone = request.getParameter("phone");
-                    String address = request.getParameter("shippingAddress");
-                    double total = Double.parseDouble(request.getParameter("totalMoney"));
-
-                    // 3. Đóng gói OrderDTO
-                    OrderDTO order = new OrderDTO();
-                    order.setUserID(loginUser.getUserID());
-                    order.setOrderDate(new java.sql.Timestamp(System.currentTimeMillis()));
-                    order.setTotalMoney(total);
-                    order.setShippingAddress(address);
-                    order.setPhone(phone);
-                    order.setStatus("Processing");
-
-                    // 4. Chuyển giỏ hàng sang List<OrderDetailDTO>
-                    List<OrderDetailDTO> listDetail = new ArrayList<>();
-                    for (ProductDTO p : cart.getCart().values()) {
-                        // Sửa p.getPrice() thành p.getBasePrice() cho khớp với DTO của bạn
-                        listDetail.add(new OrderDetailDTO(0, 0, p.getProductID(), p.getQuantity(), p.getBasePrice()));
-                    }
-                    // 5. Gọi DAO thực hiện chèn dữ liệu
-                    OrderDAO dao = new OrderDAO();
-                    boolean check = dao.insertOrder(order, listDetail);
-
-                    if (check) {
-                        session.removeAttribute("CART"); // Xóa giỏ hàng sau khi mua thành công
-                        request.setAttribute("SUCCESS_MSG", "Đơn hàng của bạn đã được tiếp nhận!");
-                        url = "success.jsp";
-                    }
-                }
+                // Lỗi Database (ví dụ: mất kết nối hoặc sai tên cột)
+                request.setAttribute("ERROR", "Hệ thống gặp sự cố khi lưu đơn hàng. Vui lòng thử lại!");
+                request.getRequestDispatcher("cart.jsp").forward(request, response);
             }
         } catch (Exception e) {
+            // Ghi log lỗi để debug trong cửa sổ Output của NetBeans
             log("Error at CheckoutController: " + e.toString());
-        } finally {
-            request.getRequestDispatcher(url).forward(request, response);
+            response.sendRedirect("error.jsp");
         }
     }
 
