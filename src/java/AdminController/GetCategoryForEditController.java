@@ -8,7 +8,6 @@ import DAO.CategoryDAO;
 import DTO.CategoryDTO;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -19,8 +18,8 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author FPT
  */
-@WebServlet(name = "AdminCategoryController", urlPatterns = {"/AdminCategoryController"})
-public class AdminCategoryController extends HttpServlet {
+@WebServlet(name = "GetCategoryForEditController", urlPatterns = {"/GetCategoryForEditController"})
+public class GetCategoryForEditController extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -35,13 +34,23 @@ public class AdminCategoryController extends HttpServlet {
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         try {
-            CategoryDAO dao = new CategoryDAO();
-            List<CategoryDTO> list = dao.getAllCategories();
-            request.setAttribute("LIST_CATEGORY", list);
+            // 1. Lấy ID danh mục từ link (ví dụ: ?id=1)
+            String idRaw = request.getParameter("id");
+            if (idRaw != null) {
+                int id = Integer.parseInt(idRaw);
+                CategoryDAO dao = new CategoryDAO();
+
+                // 2. Gọi DAO lấy thông tin chi tiết
+                CategoryDTO category = dao.getCategoryByID(id);
+
+                // 3. Đẩy dữ liệu sang trang edit_category.jsp
+                request.setAttribute("CAT_DETAIL", category);
+            }
         } catch (Exception e) {
-            log("Error at AdminCategoryController: " + e.toString());
+            log("Error at GetCategoryForEditController: " + e.toString());
         } finally {
-            request.getRequestDispatcher("admin/category.jsp").forward(request, response);
+            // Chuyển hướng sang trang giao diện sửa
+            request.getRequestDispatcher("admin/edit_category.jsp").forward(request, response);
         }
     }
 

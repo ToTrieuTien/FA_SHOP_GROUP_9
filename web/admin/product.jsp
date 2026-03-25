@@ -45,7 +45,7 @@
                 <div class="data-board-header">
                     <h3>Danh sách sản phẩm</h3>
                     <div class="search-box">
-                        <form action="AdminMainController" method="GET">
+                        <form action="AdminMainController" method="POST">
                             <input type="hidden" name="action" value="search-admin-product">
                             <input type="text" name="txtSearch" placeholder="Tìm kiếm sản phẩm...">
                         </form>

@@ -19,8 +19,8 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author FPT
  */
-@WebServlet(name = "AdminCategoryController", urlPatterns = {"/AdminCategoryController"})
-public class AdminCategoryController extends HttpServlet {
+@WebServlet(name = "SearchCategoryController", urlPatterns = {"/SearchCategoryController"})
+public class SearchCategoryController extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -34,13 +34,26 @@ public class AdminCategoryController extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
+        request.setCharacterEncoding("UTF-8"); 
+        
         try {
+            // Lấy từ khóa từ ô tìm kiếm
+            String keyword = request.getParameter("txtSearch");
+            if (keyword == null) {
+                keyword = ""; // Tránh lỗi null nếu không nhập gì
+            }
+            
+            // Gọi DAO để tìm kiếm
             CategoryDAO dao = new CategoryDAO();
-            List<CategoryDTO> list = dao.getAllCategories();
+            List<CategoryDTO> list = dao.searchCategories(keyword);
+            
+            // Đẩy danh sách tìm được lên lại giao diện
             request.setAttribute("LIST_CATEGORY", list);
+            
         } catch (Exception e) {
-            log("Error at AdminCategoryController: " + e.toString());
+            log("Error at SearchCategoryController: " + e.toString());
         } finally {
+            // Chuyển hướng về lại trang danh sách danh mục
             request.getRequestDispatcher("admin/category.jsp").forward(request, response);
         }
     }

@@ -64,7 +64,7 @@ public class UpdateProductController extends HttpServlet {
             boolean check = dao.updateProduct(productID, productName, price, categoryID, status, fileName);
 
             if (check) {
-                response.sendRedirect("MainController?action=manage-product");
+                response.sendRedirect("AdminMainController?action=manage-product");
             } else {
                 response.getWriter().println("Lỗi khi cập nhật Database!");
             }

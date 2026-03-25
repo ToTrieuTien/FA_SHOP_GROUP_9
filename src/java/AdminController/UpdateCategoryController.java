@@ -5,10 +5,8 @@
 package AdminController;
 
 import DAO.CategoryDAO;
-import DTO.CategoryDTO;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -19,8 +17,8 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author FPT
  */
-@WebServlet(name = "AdminCategoryController", urlPatterns = {"/AdminCategoryController"})
-public class AdminCategoryController extends HttpServlet {
+@WebServlet(name = "UpdateCategoryController", urlPatterns = {"/UpdateCategoryController"})
+public class UpdateCategoryController extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -35,13 +33,19 @@ public class AdminCategoryController extends HttpServlet {
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         try {
+            // 1. Lấy dữ liệu từ form gửi lên
+            int id = Integer.parseInt(request.getParameter("txtID"));
+            String name = request.getParameter("txtCategoryName");
+
+            // 2. Gọi DAO để cập nhật vào Database
             CategoryDAO dao = new CategoryDAO();
-            List<CategoryDTO> list = dao.getAllCategories();
-            request.setAttribute("LIST_CATEGORY", list);
+            dao.updateCategory(id, name);
+
         } catch (Exception e) {
-            log("Error at AdminCategoryController: " + e.toString());
+            log("Error at UpdateCategoryController: " + e.toString());
         } finally {
-            request.getRequestDispatcher("admin/category.jsp").forward(request, response);
+            // 3. Lưu xong thì quay về trang danh sách xem kết quả
+            response.sendRedirect("AdminMainController?action=manage-category");
         }
     }
 

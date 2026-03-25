@@ -4,13 +4,16 @@ public class CategoryDTO {
     private int categoryID;
     private String categoryName;
     private boolean status;
+    private int productCount;
 
-    public CategoryDTO() {}
+    public CategoryDTO() {
+    }
 
-    public CategoryDTO(int categoryID, String categoryName, boolean status) {
+    public CategoryDTO(int categoryID, String categoryName, boolean status, int productCount) {
         this.categoryID = categoryID;
         this.categoryName = categoryName;
         this.status = status;
+        this.productCount = productCount;
     }
 
     public int getCategoryID() {
@@ -36,6 +39,18 @@ public class CategoryDTO {
     public void setStatus(boolean status) {
         this.status = status;
     }
+
+    public int getProductCount() {
+        return productCount;
+    }
+
+    public void setProductCount(int productCount) {
+        this.productCount = productCount;
+    }
+    
+    
+
+    
 
 
 }

@@ -5,10 +5,8 @@
 package AdminController;
 
 import DAO.CategoryDAO;
-import DTO.CategoryDTO;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -19,8 +17,8 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author FPT
  */
-@WebServlet(name = "AdminCategoryController", urlPatterns = {"/AdminCategoryController"})
-public class AdminCategoryController extends HttpServlet {
+@WebServlet(name = "HardDeleteCategoryController", urlPatterns = {"/HardDeleteCategoryController"})
+public class HardDeleteCategoryController extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -34,15 +32,10 @@ public class AdminCategoryController extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
-        try {
-            CategoryDAO dao = new CategoryDAO();
-            List<CategoryDTO> list = dao.getAllCategories();
-            request.setAttribute("LIST_CATEGORY", list);
-        } catch (Exception e) {
-            log("Error at AdminCategoryController: " + e.toString());
-        } finally {
-            request.getRequestDispatcher("admin/category.jsp").forward(request, response);
-        }
+        // Bên trong hàm processRequest:
+        int id = Integer.parseInt(request.getParameter("id"));
+        new CategoryDAO().hardDeleteCategory(id);
+        response.sendRedirect("AdminMainController?action=recycle-bin-category");
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">

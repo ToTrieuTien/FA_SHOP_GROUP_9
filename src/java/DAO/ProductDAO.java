@@ -42,11 +42,10 @@ public class ProductDAO {
         String sqlImage = "INSERT INTO ProductImages (ProductID, ImageURL, IsPrimary) "
                 + "VALUES (?, ?, 1)";
 
-        try ( Connection con = DBUtils.getConnection(); 
-              PreparedStatement psProduct = con.prepareStatement(sqlProduct, Statement.RETURN_GENERATED_KEYS)) {
+        try ( Connection con = DBUtils.getConnection();  PreparedStatement psProduct = con.prepareStatement(sqlProduct, Statement.RETURN_GENERATED_KEYS)) {
 
             psProduct.setNString(1, name);
-            psProduct.setNString(2, "Mô tả tự động"); 
+            psProduct.setNString(2, "Mô tả tự động");
             psProduct.setDouble(3, price);
             psProduct.setInt(4, categoryID);
 
@@ -76,7 +75,7 @@ public class ProductDAO {
         try ( Connection con = DBUtils.getConnection();  PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, Integer.parseInt(productID));
             try ( ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) { 
+                if (rs.next()) {
                     return new ProductDTO(
                             rs.getInt("ProductID"),
                             rs.getNString("ProductName"),
@@ -91,15 +90,14 @@ public class ProductDAO {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return null; 
+        return null;
     }
 
     public boolean updateProduct(int id, String name, double price, int catID, boolean status, String fileName) {
         boolean check = false;
         String sqlProduct = "UPDATE Products SET ProductName=?, BasePrice=?, CategoryID=?, Status=? WHERE ProductID=?";
 
-        try (Connection con = DBUtils.getConnection();
-             PreparedStatement psProduct = con.prepareStatement(sqlProduct)) {
+        try ( Connection con = DBUtils.getConnection();  PreparedStatement psProduct = con.prepareStatement(sqlProduct)) {
 
             psProduct.setNString(1, name);
             psProduct.setDouble(2, price);
@@ -153,8 +151,7 @@ public class ProductDAO {
 
         try ( Connection con = DBUtils.getConnection()) {
             con.setAutoCommit(false);
-            try ( PreparedStatement psImg = con.prepareStatement(sqlDeleteImages);  
-                  PreparedStatement psProd = con.prepareStatement(sqlDeleteProduct)) {
+            try ( PreparedStatement psImg = con.prepareStatement(sqlDeleteImages);  PreparedStatement psProd = con.prepareStatement(sqlDeleteProduct)) {
 
                 int id = Integer.parseInt(productID);
                 psImg.setInt(1, id);
@@ -162,14 +159,14 @@ public class ProductDAO {
 
                 psProd.setInt(1, id);
                 if (psProd.executeUpdate() > 0) {
-                    con.commit(); 
+                    con.commit();
                     check = true;
                 }
             } catch (Exception ex) {
-                con.rollback(); 
+                con.rollback();
                 ex.printStackTrace();
             } finally {
-                con.setAutoCommit(true); 
+                con.setAutoCommit(true);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -183,9 +180,7 @@ public class ProductDAO {
                 + "FROM Products p LEFT JOIN ProductImages i ON p.ProductID = i.ProductID "
                 + "WHERE p.Status = 0 AND (i.IsPrimary = 1 OR i.ImageURL IS NULL)";
 
-        try ( Connection con = DBUtils.getConnection();  
-              PreparedStatement ps = con.prepareStatement(sql);  
-              ResultSet rs = ps.executeQuery()) {
+        try ( Connection con = DBUtils.getConnection();  PreparedStatement ps = con.prepareStatement(sql);  ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
                 list.add(new ProductDTO(
@@ -216,5 +211,37 @@ public class ProductDAO {
             e.printStackTrace();
         }
         return check;
+    }
+
+    public List<ProductDTO> searchProducts(String keyword) {
+        List<ProductDTO> list = new ArrayList<>();
+        // Giữ nguyên câu lệnh SQL y hệt hàm getAllProducts, chỉ thêm AND p.ProductName LIKE ?
+        String sql = "SELECT p.ProductID, p.ProductName, p.Description, p.BasePrice, p.CategoryID, p.Status, i.ImageURL "
+                + "FROM Products p LEFT JOIN ProductImages i ON p.ProductID = i.ProductID "
+                + "WHERE (i.IsPrimary = 1 OR i.ImageURL IS NULL) AND p.ProductName LIKE ?";
+
+        try ( Connection con = Utils.DBUtils.getConnection();  PreparedStatement ps = con.prepareStatement(sql)) {
+
+            // Truyền từ khóa tìm kiếm tiếng Việt vào
+            ps.setNString(1, "%" + keyword + "%"); 
+
+            try ( ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    // Mapping y hệt như hàm getAllProducts của em
+                    list.add(new ProductDTO(
+                            rs.getInt("ProductID"),
+                            rs.getNString("ProductName"),
+                            rs.getNString("Description"),
+                            rs.getDouble("BasePrice"),
+                            rs.getInt("CategoryID"),
+                            rs.getString("ImageURL"),
+                            rs.getBoolean("Status")
+                    ));
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
     }
 }
