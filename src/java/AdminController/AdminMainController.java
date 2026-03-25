@@ -30,6 +30,7 @@ public class AdminMainController extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        request.setCharacterEncoding("UTF-8");
         response.setContentType("text/html;charset=UTF-8");
         String url = "admin/dashboard.jsp"; // Mặc định vào Dashboard
 
@@ -55,6 +56,9 @@ public class AdminMainController extends HttpServlet {
                     case "edit-product":
                         url = "GetProductForEditController";
                         break;
+                    case "search-admin-product":
+                        url = "SearchAdminProductController"; // Tên file Controller xử lý tìm kiếm sản phẩm của em
+                        break;
                     case "delete-product":
                         url = "DeleteProductController";
                         break;
@@ -70,6 +74,38 @@ public class AdminMainController extends HttpServlet {
                     case "logout": // Cho phép Admin đăng xuất từ trang quản lý
                         url = "LogoutController";
                         break;
+                    case "manage-category":
+                        url = "AdminCategoryController";
+                        break;
+                    case "add-category":
+                        url = "AddCategoryController";
+                        break;
+                    case "delete-category":
+                        url = "DeleteCategoryController";
+                        break;
+                    case "add-category-page":
+                        url = "admin/add_category.jsp"; // Em tạo thêm file này để nhập tên DM
+                        break;
+
+                    case "edit-category":
+                        url = "GetCategoryForEditController"; // Controller để lấy dữ liệu cũ lên form
+                        break;
+                    case "update-category":
+                        url = "UpdateCategoryController"; // Controller xử lý lưu dữ liệu sau khi sửa
+                        break;
+                    case "search-category":
+                        url = "SearchCategoryController";
+                        break;
+                    case "recycle-bin-category":
+                        url = "RecycleBinCategoryController";
+                        break;
+                    case "restore-category":
+                        url = "RestoreCategoryController";
+                        break;
+                    case "hard-delete-category":
+                        url = "HardDeleteCategoryController";
+                        break;
+
                     default:
                         request.setAttribute("ERROR", "Hành động (Action) không được hỗ trợ trong Admin!");
                         url = "error.jsp"; // Hoặc em có thể tạo riêng 1 trang admin/error.jsp

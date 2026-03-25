@@ -46,7 +46,7 @@ public class DeleteProductController extends HttpServlet {
             log("Error at DeleteProductController: " + e.toString());
         } finally {
             // 3. Xóa xong thì tự động load lại trang danh sách quản lý
-            response.sendRedirect("MainController?action=manage-product");
+            response.sendRedirect("AdminMainController?action=manage-product");
         }
     }
 

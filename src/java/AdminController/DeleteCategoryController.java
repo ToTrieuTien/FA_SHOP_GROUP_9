@@ -5,10 +5,8 @@
 package AdminController;
 
 import DAO.CategoryDAO;
-import DTO.CategoryDTO;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -19,8 +17,8 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author FPT
  */
-@WebServlet(name = "AdminCategoryController", urlPatterns = {"/AdminCategoryController"})
-public class AdminCategoryController extends HttpServlet {
+@WebServlet(name = "DeleteCategoryController", urlPatterns = {"/DeleteCategoryController"})
+public class DeleteCategoryController extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -35,13 +33,17 @@ public class AdminCategoryController extends HttpServlet {
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         try {
-            CategoryDAO dao = new CategoryDAO();
-            List<CategoryDTO> list = dao.getAllCategories();
-            request.setAttribute("LIST_CATEGORY", list);
+            String categoryID = request.getParameter("id");
+            if (categoryID != null && !categoryID.isEmpty()) {
+                CategoryDAO dao = new CategoryDAO();
+                // Chuyển ID sang kiểu int để khớp với Database
+                dao.deleteCategory(Integer.parseInt(categoryID));
+            }
         } catch (Exception e) {
-            log("Error at AdminCategoryController: " + e.toString());
+            log("Error at DeleteCategoryController: " + e.toString());
         } finally {
-            request.getRequestDispatcher("admin/category.jsp").forward(request, response);
+            // Xóa xong quay lại trang quản lý danh mục ngay
+            response.sendRedirect("AdminMainController?action=manage-category");
         }
     }
 
