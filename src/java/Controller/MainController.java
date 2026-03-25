@@ -36,6 +36,10 @@ public class MainController extends HttpServlet {
                     case "recycle-bin": url = "RecycleBinController"; break;
                     case "restore-product": url = "RestoreProductController"; break;
                     case "hard-delete-product": url = "HardDeleteProductController"; break;
+                    //Chuc nang thanh toan_To Trieu Tien
+                    case "checkout":
+                        url = "CheckoutController";
+                        break;
 
                     default:
                         request.setAttribute("ERROR", "Hành động (Action) không được hỗ trợ!");

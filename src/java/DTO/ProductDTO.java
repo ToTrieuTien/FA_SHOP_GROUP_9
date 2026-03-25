@@ -87,9 +87,14 @@ public class ProductDTO {
     public void setStatus(boolean status) {
         this.status = status;
     }
-
-
-
     
-    
+    private int quantity; // Số lượng tạm thời để dùng cho giỏ hàng
+
+    public int getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
+    }
 }
