@@ -47,7 +47,7 @@ public class AddProductController extends HttpServlet {
 
             if (check) {
                 // Thêm thành công thì quay lại trang quản lý xem kết quả
-                response.sendRedirect("MainController?action=manage-product");
+                response.sendRedirect("AdminMainController?action=manage-product");
             } else {
                 response.getWriter().println("Lỗi khi lưu vào Database!");
             }

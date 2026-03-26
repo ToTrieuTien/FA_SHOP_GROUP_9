@@ -13,21 +13,26 @@ public class ProductDAO {
 
     public List<ProductDTO> getAllProducts() {
         List<ProductDTO> list = new ArrayList<>();
-        String sql = "SELECT p.ProductID, p.ProductName, p.Description, p.BasePrice, p.CategoryID, p.Status, i.ImageURL "
-                + "FROM Products p LEFT JOIN ProductImages i ON p.ProductID = i.ProductID "
+        // Thêm JOIN Categories c để lấy c.CategoryName
+        String sql = "SELECT p.*, c.CategoryName, i.ImageURL "
+                + "FROM Products p "
+                + "LEFT JOIN Categories c ON p.CategoryID = c.CategoryID "
+                + "LEFT JOIN ProductImages i ON p.ProductID = i.ProductID "
                 + "WHERE (i.IsPrimary = 1 OR i.ImageURL IS NULL)";
 
         try ( Connection con = DBUtils.getConnection();  PreparedStatement ps = con.prepareStatement(sql);  ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
-                list.add(new ProductDTO(
-                        rs.getInt("ProductID"),
-                        rs.getNString("ProductName"),
-                        rs.getNString("Description"),
-                        rs.getDouble("BasePrice"),
-                        rs.getInt("CategoryID"),
-                        rs.getString("ImageURL"),
-                        rs.getBoolean("Status")
-                ));
+                // Dùng Setter để đảm bảo an toàn tuyệt đối cho Cart
+                ProductDTO p = new ProductDTO();
+                p.setProductID(rs.getInt("ProductID"));
+                p.setProductName(rs.getNString("ProductName"));
+                p.setDescription(rs.getNString("Description"));
+                p.setBasePrice(rs.getDouble("BasePrice"));
+                p.setCategoryID(rs.getInt("CategoryID"));
+                p.setCategoryName(rs.getNString("CategoryName")); // Lấy được Tên danh mục ở đây
+                p.setImageURL(rs.getString("ImageURL"));
+                p.setStatus(rs.getBoolean("Status"));
+                list.add(p);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -68,23 +73,28 @@ public class ProductDAO {
     }
 
     public ProductDTO getProductByID(String productID) {
-        String sql = "SELECT p.ProductID, p.ProductName, p.Description, p.BasePrice, p.CategoryID, p.Status, i.ImageURL "
-                + "FROM Products p LEFT JOIN ProductImages i ON p.ProductID = i.ProductID "
+        // Câu SQL em thêm p.CategoryName vào để lấy tên nhé
+        String sql = "SELECT p.*, c.CategoryName, i.ImageURL "
+                + "FROM Products p "
+                + "LEFT JOIN Categories c ON p.CategoryID = c.CategoryID "
+                + "LEFT JOIN ProductImages i ON p.ProductID = i.ProductID "
                 + "WHERE p.ProductID = ? AND (i.IsPrimary = 1 OR i.ImageURL IS NULL)";
 
         try ( Connection con = DBUtils.getConnection();  PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, Integer.parseInt(productID));
             try ( ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return new ProductDTO(
-                            rs.getInt("ProductID"),
-                            rs.getNString("ProductName"),
-                            rs.getNString("Description"),
-                            rs.getDouble("BasePrice"),
-                            rs.getInt("CategoryID"),
-                            rs.getString("ImageURL"),
-                            rs.getBoolean("Status")
-                    );
+                    // Dùng Constructor rỗng rồi set từng món -> Cực kỳ an toàn cho Cart
+                    ProductDTO p = new ProductDTO();
+                    p.setProductID(rs.getInt("ProductID"));
+                    p.setProductName(rs.getNString("ProductName"));
+                    p.setDescription(rs.getNString("Description"));
+                    p.setBasePrice(rs.getDouble("BasePrice"));
+                    p.setCategoryID(rs.getInt("CategoryID"));
+                    p.setCategoryName(rs.getNString("CategoryName")); // Lấy được tên danh mục
+                    p.setImageURL(rs.getString("ImageURL"));
+                    p.setStatus(rs.getBoolean("Status"));
+                    return p;
                 }
             }
         } catch (Exception e) {
@@ -176,22 +186,24 @@ public class ProductDAO {
 
     public List<ProductDTO> getDeletedProducts() {
         List<ProductDTO> list = new ArrayList<>();
-        String sql = "SELECT p.ProductID, p.ProductName, p.Description, p.BasePrice, p.CategoryID, p.Status, i.ImageURL "
-                + "FROM Products p LEFT JOIN ProductImages i ON p.ProductID = i.ProductID "
+        String sql = "SELECT p.*, c.CategoryName, i.ImageURL "
+                + "FROM Products p "
+                + "LEFT JOIN Categories c ON p.CategoryID = c.CategoryID "
+                + "LEFT JOIN ProductImages i ON p.ProductID = i.ProductID "
                 + "WHERE p.Status = 0 AND (i.IsPrimary = 1 OR i.ImageURL IS NULL)";
 
         try ( Connection con = DBUtils.getConnection();  PreparedStatement ps = con.prepareStatement(sql);  ResultSet rs = ps.executeQuery()) {
-
             while (rs.next()) {
-                list.add(new ProductDTO(
-                        rs.getInt("ProductID"),
-                        rs.getNString("ProductName"),
-                        rs.getNString("Description"),
-                        rs.getDouble("BasePrice"),
-                        rs.getInt("CategoryID"),
-                        rs.getString("ImageURL"),
-                        rs.getBoolean("Status")
-                ));
+                ProductDTO p = new ProductDTO();
+                p.setProductID(rs.getInt("ProductID"));
+                p.setProductName(rs.getNString("ProductName"));
+                p.setDescription(rs.getNString("Description"));
+                p.setBasePrice(rs.getDouble("BasePrice"));
+                p.setCategoryID(rs.getInt("CategoryID"));
+                p.setCategoryName(rs.getNString("CategoryName"));
+                p.setImageURL(rs.getString("ImageURL"));
+                p.setStatus(rs.getBoolean("Status"));
+                list.add(p);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -215,28 +227,26 @@ public class ProductDAO {
 
     public List<ProductDTO> searchProducts(String keyword) {
         List<ProductDTO> list = new ArrayList<>();
-        // Giữ nguyên câu lệnh SQL y hệt hàm getAllProducts, chỉ thêm AND p.ProductName LIKE ?
-        String sql = "SELECT p.ProductID, p.ProductName, p.Description, p.BasePrice, p.CategoryID, p.Status, i.ImageURL "
-                + "FROM Products p LEFT JOIN ProductImages i ON p.ProductID = i.ProductID "
+        String sql = "SELECT p.*, c.CategoryName, i.ImageURL "
+                + "FROM Products p "
+                + "LEFT JOIN Categories c ON p.CategoryID = c.CategoryID "
+                + "LEFT JOIN ProductImages i ON p.ProductID = i.ProductID "
                 + "WHERE (i.IsPrimary = 1 OR i.ImageURL IS NULL) AND p.ProductName LIKE ?";
 
-        try ( Connection con = Utils.DBUtils.getConnection();  PreparedStatement ps = con.prepareStatement(sql)) {
-
-            // Truyền từ khóa tìm kiếm tiếng Việt vào
-            ps.setNString(1, "%" + keyword + "%"); 
-
+        try ( Connection con = DBUtils.getConnection();  PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setNString(1, "%" + keyword + "%");
             try ( ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    // Mapping y hệt như hàm getAllProducts của em
-                    list.add(new ProductDTO(
-                            rs.getInt("ProductID"),
-                            rs.getNString("ProductName"),
-                            rs.getNString("Description"),
-                            rs.getDouble("BasePrice"),
-                            rs.getInt("CategoryID"),
-                            rs.getString("ImageURL"),
-                            rs.getBoolean("Status")
-                    ));
+                    ProductDTO p = new ProductDTO();
+                    p.setProductID(rs.getInt("ProductID"));
+                    p.setProductName(rs.getNString("ProductName"));
+                    p.setDescription(rs.getNString("Description"));
+                    p.setBasePrice(rs.getDouble("BasePrice"));
+                    p.setCategoryID(rs.getInt("CategoryID"));
+                    p.setCategoryName(rs.getNString("CategoryName"));
+                    p.setImageURL(rs.getString("ImageURL"));
+                    p.setStatus(rs.getBoolean("Status"));
+                    list.add(p);
                 }
             }
         } catch (Exception e) {

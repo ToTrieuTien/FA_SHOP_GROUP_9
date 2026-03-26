@@ -20,8 +20,8 @@
         
         <aside class="sidebar">
             <div class="sidebar-header">
-                <h2>ICON DENIM</h2>
-                <p>Admin Panel</p>
+                <h2>TH True Fashion Shop</h2>
+                <p>Mã số: ${sessionScope.LOGIN_USER.userID}</p>
             </div>
             <ul class="sidebar-menu">
                 <li><a href="AdminMainController?action=dashboard"><i class="fas fa-th-large"></i> Dashboard</a></li>

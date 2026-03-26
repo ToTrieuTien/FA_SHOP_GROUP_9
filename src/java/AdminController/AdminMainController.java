@@ -41,14 +41,15 @@ public class AdminMainController extends HttpServlet {
                 url = "admin/dashboard.jsp";
             } else {
                 switch (action) {
+
                     case "dashboard":
-                        url = "admin/dashboard.jsp";
+                        url = "DashboardController";
                         break;
                     case "manage-product":
                         url = "AdminProductController";
                         break;
                     case "add-product-page":
-                        url = "admin/add_product.jsp";
+                        url = "AddProductPageController";
                         break;
                     case "add-product":
                         url = "AddProductController";
@@ -104,6 +105,28 @@ public class AdminMainController extends HttpServlet {
                         break;
                     case "hard-delete-category":
                         url = "HardDeleteCategoryController";
+                        break;
+                    case "manage-order":
+                        url = "ManageOrderController"; // Hiện danh sách
+                        break;
+                    case "order-detail":
+                        url = "OrderDetailController"; // Xem chi tiết
+                        break;
+                    case "update-order-status":
+                        url = "UpdateOrderStatusController"; // Đổi trạng thái
+                        break;
+                    case "search-order":
+                        url = "SearchOrderController"; // Tìm kiếm
+                        break;
+
+                    case "manage-customer":
+                        url = "ManageCustomerController";
+                        break;
+                    case "search-customer":
+                        url = "SearchCustomerController";
+                        break;
+                    case "customer-detail":
+                        url = "CustomerDetailController";
                         break;
 
                     default:

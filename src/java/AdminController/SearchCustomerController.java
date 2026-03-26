@@ -4,9 +4,11 @@
  */
 package AdminController;
 
-import DAO.DashboardDAO;
+import DAO.CustomerDAO;
+import DTO.CustomerDTO;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -17,8 +19,8 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author FPT
  */
-@WebServlet(name = "DashboardController", urlPatterns = {"/DashboardController"})
-public class DashboardController extends HttpServlet {
+@WebServlet(name = "SearchCustomerController", urlPatterns = {"/SearchCustomerController"})
+public class SearchCustomerController extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -32,23 +34,24 @@ public class DashboardController extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
+        // Ép kiểu để tìm kiếm tiếng Việt có dấu
         request.setCharacterEncoding("UTF-8");
 
         try {
-            DashboardDAO dao = new DashboardDAO();
-            
-            // Lấy dữ liệu thực tế và đẩy vào request
-            request.setAttribute("TOTAL_ORDERS", dao.getTotalOrders());
-            request.setAttribute("TOTAL_REVENUE", dao.getTotalRevenue());
-            request.setAttribute("TOTAL_PRODUCTS", dao.getTotalProducts());
-            request.setAttribute("TOTAL_CUSTOMERS", dao.getTotalCustomers());
-            request.setAttribute("RECENT_PRODUCTS", dao.getRecentProducts());
-            
+            String keyword = request.getParameter("txtSearch");
+            if (keyword == null) {
+                keyword = "";
+            }
+
+            CustomerDAO dao = new CustomerDAO();
+            List<CustomerDTO> list = dao.searchCustomers(keyword.trim());
+
+            // Trả danh sách tìm được về lại đúng tên biến LIST_CUSTOMER
+            request.setAttribute("LIST_CUSTOMER", list);
         } catch (Exception e) {
-            log("Lỗi tại DashboardController: " + e.toString());
+            log("Lỗi tại SearchCustomerController: " + e.toString());
         } finally {
-            // Điều hướng sang trang giao diện
-            request.getRequestDispatcher("admin/dashboard.jsp").forward(request, response);
+            request.getRequestDispatcher("admin/customer_list.jsp").forward(request, response);
         }
     }
 

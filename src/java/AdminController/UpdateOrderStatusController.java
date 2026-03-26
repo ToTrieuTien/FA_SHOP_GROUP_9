@@ -4,7 +4,7 @@
  */
 package AdminController;
 
-import DAO.DashboardDAO;
+import DAO.OrderDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import javax.servlet.ServletException;
@@ -17,8 +17,8 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author FPT
  */
-@WebServlet(name = "DashboardController", urlPatterns = {"/DashboardController"})
-public class DashboardController extends HttpServlet {
+@WebServlet(name = "UpdateOrderStatusController", urlPatterns = {"/UpdateOrderStatusController"})
+public class UpdateOrderStatusController extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -32,23 +32,19 @@ public class DashboardController extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
-        request.setCharacterEncoding("UTF-8");
-
         try {
-            DashboardDAO dao = new DashboardDAO();
-            
-            // Lấy dữ liệu thực tế và đẩy vào request
-            request.setAttribute("TOTAL_ORDERS", dao.getTotalOrders());
-            request.setAttribute("TOTAL_REVENUE", dao.getTotalRevenue());
-            request.setAttribute("TOTAL_PRODUCTS", dao.getTotalProducts());
-            request.setAttribute("TOTAL_CUSTOMERS", dao.getTotalCustomers());
-            request.setAttribute("RECENT_PRODUCTS", dao.getRecentProducts());
-            
+            int id = Integer.parseInt(request.getParameter("id"));
+            String status = request.getParameter("status"); // Lấy trạng thái mới (Processing, Completed)
+
+            OrderDAO dao = new OrderDAO();
+            boolean check = dao.updateOrderStatus(id, status);
+
+            if (check) {
+                // Đổi trạng thái thành công thì tải lại trang danh sách đơn hàng
+                response.sendRedirect("AdminMainController?action=manage-order");
+            }
         } catch (Exception e) {
-            log("Lỗi tại DashboardController: " + e.toString());
-        } finally {
-            // Điều hướng sang trang giao diện
-            request.getRequestDispatcher("admin/dashboard.jsp").forward(request, response);
+            log("Lỗi tại UpdateOrderStatusController: " + e.toString());
         }
     }
 

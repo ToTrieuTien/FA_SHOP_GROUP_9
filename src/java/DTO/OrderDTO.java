@@ -5,6 +5,7 @@ import java.sql.Timestamp;
 public class OrderDTO {
     private int orderID;
     private String userID;
+    private String customerName; // Để chứa FullName từ bảng Users
     private Timestamp orderDate;
     private double totalMoney;
     private String shippingAddress;
@@ -14,10 +15,10 @@ public class OrderDTO {
     public OrderDTO() {
     }
 
-    
-    public OrderDTO(int orderID, String userID, Timestamp orderDate, double totalMoney, String shippingAddress, String phone, String status) {
+    public OrderDTO(int orderID, String userID, String customerName, Timestamp orderDate, double totalMoney, String shippingAddress, String phone, String status) {
         this.orderID = orderID;
         this.userID = userID;
+        this.customerName = customerName;
         this.orderDate = orderDate;
         this.totalMoney = totalMoney;
         this.shippingAddress = shippingAddress;
@@ -39,6 +40,14 @@ public class OrderDTO {
 
     public void setUserID(String userID) {
         this.userID = userID;
+    }
+
+    public String getCustomerName() {
+        return customerName;
+    }
+
+    public void setCustomerName(String customerName) {
+        this.customerName = customerName;
     }
 
     public Timestamp getOrderDate() {
@@ -80,6 +89,7 @@ public class OrderDTO {
     public void setStatus(String status) {
         this.status = status;
     }
-    
+
+   
     
 }    

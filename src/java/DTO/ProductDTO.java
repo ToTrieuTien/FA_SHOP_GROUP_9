@@ -14,6 +14,7 @@ public class ProductDTO {
     private String description;
     private double basePrice;
     private int categoryID;
+    private String categoryName;
     private String imageURL;
     private boolean status;
     
@@ -110,6 +111,14 @@ public class ProductDTO {
 
     public void setVariantID(int variantID) {
         this.variantID = variantID;
+    }
+
+    public String getCategoryName() {
+        return categoryName;
+    }
+
+    public void setCategoryName(String categoryName) {
+        this.categoryName = categoryName;
     }
     
     

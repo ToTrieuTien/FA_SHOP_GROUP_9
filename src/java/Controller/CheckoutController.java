@@ -41,70 +41,72 @@ public class CheckoutController extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
+        request.setCharacterEncoding("UTF-8"); // Đảm bảo tiếng Việt không bị lỗi font
         HttpSession session = request.getSession();
 
         try {
-            // 1. Kiểm tra quyền truy cập (User phải đăng nhập mới được checkout)
+            // 1. Kiểm tra đăng nhập
             UserDTO loginUser = (UserDTO) session.getAttribute("LOGIN_USER");
             if (loginUser == null) {
                 response.sendRedirect("login.jsp");
-                return; // Ngắt luồng xử lý
+                return;
             }
 
-            // 2. Kiểm tra giỏ hàng (Phải có hàng mới cho thanh toán)
+            // 2. Kiểm tra giỏ hàng
             CartDTO cart = (CartDTO) session.getAttribute("CART");
             if (cart == null || cart.getCart().isEmpty()) {
                 response.sendRedirect("MainController?action=view-cart");
                 return;
             }
 
-            // 3. Thu thập dữ liệu từ Form gửi lên
+            // 3. Lấy thông tin giao hàng từ Form
             String phone = request.getParameter("phone");
             String address = request.getParameter("shippingAddress");
             String paymentMethod = request.getParameter("paymentMethod");
             String totalRaw = request.getParameter("totalMoney");
             double total = (totalRaw != null && !totalRaw.isEmpty()) ? Double.parseDouble(totalRaw) : 0;
 
-            // 4. Validation (Kiểm tra dữ liệu đầu vào lần cuối)
             if (phone == null || phone.trim().isEmpty() || address == null || address.trim().isEmpty()) {
                 request.setAttribute("ERROR", "Vui lòng cung cấp đầy đủ thông tin giao hàng!");
                 request.getRequestDispatcher("cart.jsp").forward(request, response);
                 return;
             }
 
-            // 5. Khởi tạo đối tượng Order để lưu vào Database
+            // 4. Khởi tạo OrderDTO khớp với Database (TotalMoney, ShippingAddress)
             OrderDTO order = new OrderDTO();
             order.setUserID(loginUser.getUserID());
             order.setOrderDate(new java.sql.Timestamp(System.currentTimeMillis()));
             order.setTotalMoney(total);
             order.setShippingAddress(address);
             order.setPhone(phone);
+            order.setStatus("Pending"); // Trạng thái mặc định khi mới đặt hàng
 
-            // Thiết lập trạng thái đơn hàng dựa trên phương thức thanh toán
-            order.setStatus("QR".equals(paymentMethod) ? "Awaiting Payment" : "Processing");
-
-            // Lấy danh sách sản phẩm từ giỏ hàng để lưu vào chi tiết đơn hàng
+            // 5. Chuyển đổi từ Cart sang List<OrderDetailDTO> (SỬA LỖI TẠI ĐÂY)
             List<OrderDetailDTO> listDetail = new ArrayList<>();
             for (ProductDTO item : cart.getCart().values()) {
-                listDetail.add(new OrderDetailDTO(0, 0, item.getProductID(), item.getQuantity(), item.getTotalPrice()));
+                // Truyền đủ 6 tham số: ID, OrderID, ProductID, ProductName, Quantity, Price
+                listDetail.add(new OrderDetailDTO(
+                        0, // orderDetailID (DB tự tăng)
+                        0, // orderID (DAO sẽ gán sau)
+                        item.getProductID(), // productID
+                        item.getProductName(), // productName
+                        item.getQuantity(), // quantity
+                        item.getBasePrice() // price (Đơn giá tại thời điểm mua)
+                ));
             }
 
+            // 6. Gọi DAO lưu vào Database
             OrderDAO dao = new OrderDAO();
-// Truyền danh sách đã xử lý vào DAO
             boolean isSuccess = dao.insertOrder(order, listDetail);
 
             if (isSuccess) {
-                // Thanh toán thành công: Xóa giỏ hàng và chuyển hướng sang trang success
-                session.removeAttribute("CART");
-                session.setAttribute("SUCCESS_MSG", "Đơn hàng của bạn đã được ghi nhận!");
+                session.removeAttribute("CART"); // Xóa giỏ hàng sau khi đặt thành công
                 response.sendRedirect("success.jsp");
             } else {
-                // Lỗi Database (ví dụ: mất kết nối hoặc sai tên cột)
-                request.setAttribute("ERROR", "Hệ thống gặp sự cố khi lưu đơn hàng. Vui lòng thử lại!");
+                request.setAttribute("ERROR", "Lỗi hệ thống: Không thể lưu đơn hàng!");
                 request.getRequestDispatcher("cart.jsp").forward(request, response);
             }
         } catch (Exception e) {
-            // Ghi log lỗi để debug trong cửa sổ Output của NetBeans
             log("Error at CheckoutController: " + e.toString());
             response.sendRedirect("error.jsp");
         }

@@ -23,15 +23,15 @@
             <aside class="sidebar">
                 <div class="sidebar-header">
                     <h2>TH True Fashion Shop</h2>
-                    <p>Admin Panel</p>
+                    <p>Mã số: ${sessionScope.LOGIN_USER.userID}</p>
                 </div>
-                <%-- Cấu trúc menu phải có ul và li để khớp với CSS sidebar-menu li a --%>
                 <ul class="sidebar-menu">
                     <li><a href="AdminMainController?action=dashboard"><i class="fas fa-th-large"></i> Dashboard</a></li>
                     <li><a href="AdminMainController?action=manage-product"><i class="fas fa-tshirt"></i> Quản lý Sản Phẩm</a></li>
                     <li class="active"><a href="AdminMainController?action=manage-category"><i class="fas fa-folder"></i> Quản lý Danh Mục</a></li>
                     <li><a href="AdminMainController?action=manage-order"><i class="fas fa-box"></i> Đơn Hàng</a></li>
                     <li><a href="AdminMainController?action=manage-customer"><i class="fas fa-users"></i> Khách Hàng</a></li>
+                    <hr>
                     <li><a href="MainController?action=logout"><i class="fas fa-sign-out-alt"></i> Đăng Xuất</a></li>
                 </ul>
             </aside>

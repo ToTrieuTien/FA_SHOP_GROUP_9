@@ -4,9 +4,12 @@
  */
 package AdminController;
 
-import DAO.DashboardDAO;
+import DAO.CustomerDAO;
+import DTO.CustomerDTO;
+import DTO.OrderDTO;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -17,8 +20,8 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author FPT
  */
-@WebServlet(name = "DashboardController", urlPatterns = {"/DashboardController"})
-public class DashboardController extends HttpServlet {
+@WebServlet(name = "CustomerDetailController", urlPatterns = {"/CustomerDetailController"})
+public class CustomerDetailController extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -32,26 +35,26 @@ public class DashboardController extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
-        request.setCharacterEncoding("UTF-8");
-
         try {
-            DashboardDAO dao = new DashboardDAO();
+            // Lấy ID của khách hàng khi bấm nút Con mắt
+            String id = request.getParameter("id"); 
             
-            // Lấy dữ liệu thực tế và đẩy vào request
-            request.setAttribute("TOTAL_ORDERS", dao.getTotalOrders());
-            request.setAttribute("TOTAL_REVENUE", dao.getTotalRevenue());
-            request.setAttribute("TOTAL_PRODUCTS", dao.getTotalProducts());
-            request.setAttribute("TOTAL_CUSTOMERS", dao.getTotalCustomers());
-            request.setAttribute("RECENT_PRODUCTS", dao.getRecentProducts());
+            CustomerDAO dao = new CustomerDAO();
+            
+            // Gọi 2 hàm DAO để lấy Hồ sơ và Lịch sử đơn hàng
+            CustomerDTO customerInfo = dao.getCustomerById(id);
+            List<OrderDTO> customerOrders = dao.getCustomerOrders(id);
+            
+            // Đẩy sang trang JSP tôi đã viết sẵn cho em lúc nãy
+            request.setAttribute("CUSTOMER_INFO", customerInfo);
+            request.setAttribute("CUSTOMER_ORDERS", customerOrders);
             
         } catch (Exception e) {
-            log("Lỗi tại DashboardController: " + e.toString());
+            log("Lỗi tại CustomerDetailController: " + e.toString());
         } finally {
-            // Điều hướng sang trang giao diện
-            request.getRequestDispatcher("admin/dashboard.jsp").forward(request, response);
+            request.getRequestDispatcher("admin/customer_detail.jsp").forward(request, response);
         }
     }
-
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
      * Handles the HTTP <code>GET</code> method.

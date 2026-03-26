@@ -4,9 +4,11 @@
  */
 package AdminController;
 
-import DAO.DashboardDAO;
+import DAO.OrderDAO;
+import DTO.OrderDTO;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -17,8 +19,8 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author FPT
  */
-@WebServlet(name = "DashboardController", urlPatterns = {"/DashboardController"})
-public class DashboardController extends HttpServlet {
+@WebServlet(name = "SearchOrderController", urlPatterns = {"/SearchOrderController"})
+public class SearchOrderController extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -32,23 +34,28 @@ public class DashboardController extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
-        request.setCharacterEncoding("UTF-8");
-
+        // Ép kiểu UTF-8 để nhận đúng từ khóa tiếng Việt có dấu từ form
+        request.setCharacterEncoding("UTF-8"); 
+        
         try {
-            DashboardDAO dao = new DashboardDAO();
-            
-            // Lấy dữ liệu thực tế và đẩy vào request
-            request.setAttribute("TOTAL_ORDERS", dao.getTotalOrders());
-            request.setAttribute("TOTAL_REVENUE", dao.getTotalRevenue());
-            request.setAttribute("TOTAL_PRODUCTS", dao.getTotalProducts());
-            request.setAttribute("TOTAL_CUSTOMERS", dao.getTotalCustomers());
-            request.setAttribute("RECENT_PRODUCTS", dao.getRecentProducts());
+            // Lấy từ khóa người dùng gõ vào ô tìm kiếm
+            String keyword = request.getParameter("txtSearch");
+            if (keyword == null) {
+                keyword = "";
+            }
+
+            // Gọi hàm tìm kiếm trong DAO
+            OrderDAO dao = new OrderDAO();
+            List<OrderDTO> list = dao.searchOrders(keyword.trim());
+
+            // Trả danh sách tìm được về lại đúng tên biến LIST_ORDER để file JSP in ra
+            request.setAttribute("LIST_ORDER", list);
             
         } catch (Exception e) {
-            log("Lỗi tại DashboardController: " + e.toString());
+            log("Lỗi tại SearchOrderController: " + e.toString());
         } finally {
-            // Điều hướng sang trang giao diện
-            request.getRequestDispatcher("admin/dashboard.jsp").forward(request, response);
+            // Đẩy dữ liệu về lại trang danh sách đơn hàng
+            request.getRequestDispatcher("admin/order_list.jsp").forward(request, response);
         }
     }
 

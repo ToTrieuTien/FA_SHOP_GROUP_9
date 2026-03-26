@@ -3,16 +3,18 @@ package DTO;
 public class OrderDetailDTO {
     private int orderDetailID;
     private int orderID;
-    private int variantID;
+    private int productID;
+    private String productName; // Để hiện tên sản phẩm khi xem chi tiết
     private int quantity;
     private double price;
 
     public OrderDetailDTO() {}
 
-    public OrderDetailDTO(int orderDetailID, int orderID, int productID, int quantity, double price) {
+    public OrderDetailDTO(int orderDetailID, int orderID, int productID, String productName, int quantity, double price) {
         this.orderDetailID = orderDetailID;
         this.orderID = orderID;
-        this.variantID = productID;
+        this.productID = productID;
+        this.productName = productName;
         this.quantity = quantity;
         this.price = price;
     }
@@ -33,12 +35,20 @@ public class OrderDetailDTO {
         this.orderID = orderID;
     }
 
-    public int getVariantID() {
-        return variantID;
+    public int getProductID() {
+        return productID;
     }
 
-    public void setVariantID(int productID) {
-        this.variantID = productID;
+    public void setProductID(int productID) {
+        this.productID = productID;
+    }
+
+    public String getProductName() {
+        return productName;
+    }
+
+    public void setProductName(String productName) {
+        this.productName = productName;
     }
 
     public int getQuantity() {
@@ -57,4 +67,5 @@ public class OrderDetailDTO {
         this.price = price;
     }
 
+    
 }

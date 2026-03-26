@@ -34,17 +34,23 @@ public class GetProductForEditController extends HttpServlet {
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         try {
-            // 1. Lấy ID sản phẩm từ URL (?action=edit-product&id=1)
+            // 1. Lấy ID sản phẩm từ request
             String productID = request.getParameter("id");
-            
-            // 2. Gọi DAO để lấy thông tin chi tiết của sản phẩm đó
+
+            // 2. Lấy thông tin chi tiết của sản phẩm (Dùng ProductDAO)
             ProductDAO dao = new ProductDAO();
-            ProductDTO product = dao.getProductByID(productID); // Em cần viết thêm hàm này trong DAO nhé
-            
-            // 3. Đẩy dữ liệu sang trang edit_product.jsp
+            ProductDTO product = dao.getProductByID(productID);
+
+            // 3. Lấy danh sách toàn bộ danh mục để đổ vào dropdown (Dùng CategoryDAO)
+            DAO.CategoryDAO catDao = new DAO.CategoryDAO();
+
+            // 4. Đẩy TẤT CẢ dữ liệu vào request (Quan trọng: Phải setAttribute trước khi forward)
             request.setAttribute("PRODUCT_INFO", product);
+            request.setAttribute("LIST_CATEGORY", catDao.getAllCategories());
+
+            // 5. CHỈ THỰC HIỆN chuyển hướng khi đã chuẩn bị xong đầy đủ dữ liệu
             request.getRequestDispatcher("admin/edit_product.jsp").forward(request, response);
-            
+
         } catch (Exception e) {
             log("Error at GetProductForEditController: " + e.toString());
         }

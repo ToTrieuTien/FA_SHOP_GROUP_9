@@ -4,9 +4,12 @@
  */
 package AdminController;
 
-import DAO.DashboardDAO;
+import DAO.OrderDAO;
+import DTO.OrderDTO;
+import DTO.OrderDetailDTO;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -17,8 +20,8 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author FPT
  */
-@WebServlet(name = "DashboardController", urlPatterns = {"/DashboardController"})
-public class DashboardController extends HttpServlet {
+@WebServlet(name = "OrderDetailController", urlPatterns = {"/OrderDetailController"})
+public class OrderDetailController extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -32,37 +35,35 @@ public class DashboardController extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
-        request.setCharacterEncoding("UTF-8");
-
         try {
-            DashboardDAO dao = new DashboardDAO();
-            
-            // Lấy dữ liệu thực tế và đẩy vào request
-            request.setAttribute("TOTAL_ORDERS", dao.getTotalOrders());
-            request.setAttribute("TOTAL_REVENUE", dao.getTotalRevenue());
-            request.setAttribute("TOTAL_PRODUCTS", dao.getTotalProducts());
-            request.setAttribute("TOTAL_CUSTOMERS", dao.getTotalCustomers());
-            request.setAttribute("RECENT_PRODUCTS", dao.getRecentProducts());
-            
+            int id = Integer.parseInt(request.getParameter("id"));
+            OrderDAO dao = new OrderDAO();
+
+            // Gọi 2 hàm vừa thêm ở Bước 1
+            OrderDTO order = dao.getOrderById(id);
+            List<OrderDetailDTO> items = dao.getItemsByOrderId(id);
+
+            // Đóng gói gửi sang JSP
+            request.setAttribute("ORDER_INFO", order);
+            request.setAttribute("ORDER_ITEMS", items);
         } catch (Exception e) {
-            log("Lỗi tại DashboardController: " + e.toString());
+            log("Lỗi tại OrderDetailController: " + e.toString());
         } finally {
-            // Điều hướng sang trang giao diện
-            request.getRequestDispatcher("admin/dashboard.jsp").forward(request, response);
+            request.getRequestDispatcher("admin/order_detail.jsp").forward(request, response);
         }
     }
 
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
-    /**
-     * Handles the HTTP <code>GET</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
-    @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+// <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
+/**
+ * Handles the HTTP <code>GET</code> method.
+ *
+ * @param request servlet request
+ * @param response servlet response
+ * @throws ServletException if a servlet-specific error occurs
+ * @throws IOException if an I/O error occurs
+ */
+@Override
+protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         processRequest(request, response);
     }
@@ -76,7 +77,7 @@ public class DashboardController extends HttpServlet {
      * @throws IOException if an I/O error occurs
      */
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         processRequest(request, response);
     }
@@ -87,7 +88,7 @@ public class DashboardController extends HttpServlet {
      * @return a String containing servlet description
      */
     @Override
-    public String getServletInfo() {
+public String getServletInfo() {
         return "Short description";
     }// </editor-fold>
 

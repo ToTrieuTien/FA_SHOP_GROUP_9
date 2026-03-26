@@ -4,9 +4,11 @@
  */
 package AdminController;
 
-import DAO.DashboardDAO;
+import DAO.CategoryDAO;
+import DTO.CategoryDTO;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -17,8 +19,8 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author FPT
  */
-@WebServlet(name = "DashboardController", urlPatterns = {"/DashboardController"})
-public class DashboardController extends HttpServlet {
+@WebServlet(name = "AddProductPageController", urlPatterns = {"/AddProductPageController"})
+public class AddProductPageController extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -32,23 +34,22 @@ public class DashboardController extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
-        request.setCharacterEncoding("UTF-8");
-
         try {
-            DashboardDAO dao = new DashboardDAO();
-            
-            // Lấy dữ liệu thực tế và đẩy vào request
-            request.setAttribute("TOTAL_ORDERS", dao.getTotalOrders());
-            request.setAttribute("TOTAL_REVENUE", dao.getTotalRevenue());
-            request.setAttribute("TOTAL_PRODUCTS", dao.getTotalProducts());
-            request.setAttribute("TOTAL_CUSTOMERS", dao.getTotalCustomers());
-            request.setAttribute("RECENT_PRODUCTS", dao.getRecentProducts());
-            
+            // 1. Lấy dữ liệu từ Database trước
+            CategoryDAO catDao = new CategoryDAO();
+            List<CategoryDTO> list = catDao.getAllCategories();
+
+            // 2. Bơm vào request (Phải làm bước này TRƯỚC khi forward)
+            request.setAttribute("LIST_CATEGORY", list);
+
+            // 3. CUỐI CÙNG mới được forward sang trang JSP
+            request.getRequestDispatcher("admin/add_product.jsp").forward(request, response);
+
         } catch (Exception e) {
-            log("Lỗi tại DashboardController: " + e.toString());
+            log("Lỗi: " + e.toString());
         } finally {
-            // Điều hướng sang trang giao diện
-            request.getRequestDispatcher("admin/dashboard.jsp").forward(request, response);
+            // Lấy xong dữ liệu thì mới chuyển hướng sang file JSP
+            request.getRequestDispatcher("admin/add_product.jsp").forward(request, response);
         }
     }
 
