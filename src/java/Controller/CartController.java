@@ -1,5 +1,6 @@
 package Controller;
 
+import DAO.OrderDAO;
 import DAO.ProductDAO;
 import DTO.CartDTO;
 import DTO.ProductDTO;
@@ -18,91 +19,110 @@ public class CartController extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
+        request.setCharacterEncoding("UTF-8");
+
         try {
             HttpSession session = request.getSession();
-
-            // --- CHỐT CHẶN BẢO MẬT: BẮT BUỘC ĐĂNG NHẬP MỚI ĐƯỢC DÙNG GIỎ HÀNG ---
             UserDTO loginUser = (UserDTO) session.getAttribute("LOGIN_USER");
+
+            // Bảo mật: Yêu cầu đăng nhập
             if (loginUser == null) {
-                // Lưu câu báo lỗi vào Session
-                session.setAttribute("LOGIN_ERROR", "Bạn phải đăng nhập để thêm sản phẩm vào giỏ hàng!");
-                // Đá về trang đăng nhập ngay lập tức
+                session.setAttribute("LOGIN_ERROR", "Vui lòng đăng nhập để tiếp tục!");
                 response.sendRedirect("login.jsp");
                 return;
             }
 
             String action = request.getParameter("action");
-
-            // Thay vì dùng List, hãy dùng CartDTO để khớp với CheckoutController
             CartDTO cart = (CartDTO) session.getAttribute("CART");
             if (cart == null) {
                 cart = new CartDTO();
             }
 
+            // 1. LƯU THÔNG TIN TẠM THỜI (AJAX)
+            if ("save-temp".equals(action)) {
+                session.setAttribute("TEMP_PHONE", request.getParameter("phone"));
+                session.setAttribute("TEMP_ADDRESS", request.getParameter("address"));
+                return;
+            }
+
+            // 2. THÊM VÀO GIỎ HÀNG
             if ("add-to-cart".equals(action)) {
                 String productID = request.getParameter("productID");
                 String variantID = request.getParameter("variantID");
-
-                // Chỉ cần productID để bắt đầu xử lý
-                if (productID != null && !productID.isEmpty()) {
+                if (productID != null) {
                     ProductDAO dao = new ProductDAO();
                     ProductDTO product = dao.getProductByID(productID);
-
                     if (product != null) {
                         product.setQuantity(1);
-
-                        // KIỂM TRA VARIANTID: Nếu null thì gán tạm giá trị mặc định (ví dụ: 1)
-                        if (variantID != null && !variantID.isEmpty()) {
-                            try {
-                                product.setVariantID(Integer.parseInt(variantID));
-                            } catch (NumberFormatException e) {
-                                product.setVariantID(1); // Backup nếu parse lỗi
-                            }
-                        } else {
-                            product.setVariantID(1); // Giá trị mặc định để không bị lỗi CSDL sau này
-                        }
-
+                        product.setVariantID(variantID != null ? Integer.parseInt(variantID) : 1);
                         cart.add(product);
                         session.setAttribute("CART", cart);
-                        session.setAttribute("SUCCESS_MSG", "Đã thêm vào giỏ hàng!");
                     }
                 }
-                // Đảm bảo lệnh redirect này nằm đúng luồng
                 response.sendRedirect("MainController");
                 return;
-            } // Xử lý XÓA khỏi giỏ
+            } // 3. XỬ LÝ XÁC NHẬN THANH TOÁN (LOGIC TRỌNG TÂM TIẾN CẦN)
+            else if ("confirm-payment".equals(action)) {
+                try {
+                    String orderIDStr = request.getParameter("orderID");
+                    if (orderIDStr != null) {
+                        int orderID = Integer.parseInt(orderIDStr);
+                        OrderDAO dao = new OrderDAO();
+
+                        // SỬA TẠI ĐÂY: Đổi từ 'Shipping' sang 'Processing'
+                        // Để hiển thị là "Đang kiểm tra giao dịch" trên giao diện
+                        boolean check = dao.updateOrderStatus(orderID, "Processing");
+
+                        if (check) {
+                            session.setAttribute("SUCCESS_MSG", "Đang kiểm tra giao dịch của bạn. Vui lòng đợi Admin xác nhận!");
+                        } else {
+                            session.setAttribute("ERROR_MSG", "Cập nhật trạng thái thất bại!");
+                        }
+                    }
+                } catch (Exception e) {
+                    log("Error at confirm-payment: " + e.toString());
+                }
+                // Chuyển hướng về trang lịch sử đơn hàng để xem trạng thái mới
+                response.sendRedirect("MainController?action=view-my-orders");
+                return;
+            } // 4. XÓA KHỎI GIỎ HÀNG
             else if ("remove-from-cart".equals(action)) {
                 String removeID = request.getParameter("id");
                 if (removeID != null) {
-                    try {
-                        int idToRemove = Integer.parseInt(removeID);
-                        cart.remove(idToRemove);
-                    } catch (NumberFormatException e) {
-                        log("Invalid ID: " + removeID);
-                    }
+                    cart.remove(Integer.parseInt(removeID));
                 }
                 session.setAttribute("CART", cart);
                 response.sendRedirect("MainController?action=view-cart");
                 return;
-                //Xử lý cập nhật
-            } else if ("update-cart".equals(action)) {
-                try {
-                    int id = Integer.parseInt(request.getParameter("id"));
-                    int quantity = Integer.parseInt(request.getParameter("quantity"));
-
-                    cart.update(id, quantity);
-                } catch (Exception e) {
-                    log("Update error");
-                }
-
+            } // 5. CẬP NHẬT GIỎ HÀNG
+            else if ("update-cart".equals(action)) {
+                int id = Integer.parseInt(request.getParameter("id"));
+                int quantity = Integer.parseInt(request.getParameter("quantity"));
+                cart.update(id, quantity);
                 session.setAttribute("CART", cart);
                 response.sendRedirect("MainController?action=view-cart");
                 return;
-            } //Xử lý xóa hết giở hàng
+            } // 6. XÓA SẠCH GIỎ HÀNG
             else if ("clear-cart".equals(action)) {
                 cart.clear();
                 session.setAttribute("CART", cart);
                 response.sendRedirect("MainController?action=view-cart");
+                return;
+            } else if ("delete-order".equals(action)) {
+                try {
+                    int orderID = Integer.parseInt(request.getParameter("orderID"));
+                    OrderDAO dao = new OrderDAO();
+                    boolean check = dao.deleteOrder(orderID);
+
+                    if (check) {
+                        session.setAttribute("SUCCESS_MSG", "Đã xóa đơn hàng khỏi lịch sử!");
+                    } else {
+                        session.setAttribute("ERROR_MSG", "Không thể xóa đơn hàng này!");
+                    }
+                } catch (Exception e) {
+                    log("Error at delete-order: " + e.toString());
+                }
+                response.sendRedirect("MainController?action=view-my-orders");
                 return;
             }
 

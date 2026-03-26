@@ -1,12 +1,11 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
- */
 package Controller;
 
+import DAO.OrderDAO;
 import DTO.CartDTO;
+import DTO.OrderDTO;
+import DTO.UserDTO;
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -14,88 +13,65 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-/**
- *
- * @author FPT
- */
 @WebServlet(name = "OrderController", urlPatterns = {"/OrderController"})
 public class OrderController extends HttpServlet {
 
-    /**
-     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
-     * methods.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // Trong OrderController.java
-        String paymentMethod = request.getParameter("paymentMethod"); // Giá trị từ Radio button
+        response.setContentType("text/html;charset=UTF-8");
+        request.setCharacterEncoding("UTF-8");
+        
+        String action = request.getParameter("action");
         HttpSession session = request.getSession();
-        CartDTO cart = (CartDTO) session.getAttribute("CART");
+        UserDTO loginUser = (UserDTO) session.getAttribute("LOGIN_USER");
 
-        if (cart != null && "QR".equals(paymentMethod)) {
-            double totalAmount = cart.getTotalPrice();
-            String orderId = "DH" + System.currentTimeMillis(); // Mã đơn hàng tạm thời
+        if (loginUser == null) {
+            response.sendRedirect("login.jsp");
+            return;
+        }
 
-            // Cấu hình thông tin chuyển khoản của bạn
-            String bankId = "MB"; // Ví dụ MB Bank
-            String accountNo = "0000000007"; // Số tài khoản của bạn
-            String accountName = "TO TRIEU TIEN";
+        try {
+            // Nhánh 1: Theo dõi đơn hàng (Action từ MainController)
+            if ("view-my-orders".equals(action)) {
+                OrderDAO dao = new OrderDAO();
+                List<OrderDTO> list = dao.getOrdersByUserID(loginUser.getUserID());
+                request.setAttribute("LIST_ORDERS", list);
+                request.getRequestDispatcher("my-orders.jsp").forward(request, response);
+                return;
+            }
 
-            // Tạo URL VietQR (Template compact giúp mã gọn hơn)
-            String qrUrl = String.format("https://img.vietqr.io/image/%s-%s-compact.png?amount=%.0f&addInfo=%s&accountName=%s",
-                    bankId, accountNo, totalAmount, "Thanh toan " + orderId, accountName);
+            // Nhánh 2: Xử lý hiển thị QR (Khi Checkout gọi sang hoặc từ cart)
+            String paymentMethod = request.getParameter("paymentMethod");
+            CartDTO cart = (CartDTO) session.getAttribute("CART");
 
-            // Đẩy dữ liệu sang trang hiển thị QR
-            request.setAttribute("QR_URL", qrUrl);
-            request.setAttribute("TOTAL", totalAmount);
-            request.setAttribute("ORDER_ID", orderId);
+            if (cart != null && "QR".equals(paymentMethod)) {
+                double totalAmount = cart.getTotalPrice();
+                String orderId = "DH" + System.currentTimeMillis();
 
-            request.getRequestDispatcher("displayQR.jsp").forward(request, response);
+                String bankId = "MB"; 
+                String accountNo = "0000000007"; 
+                String accountName = "TO TRIEU TIEN";
+
+                String qrUrl = String.format("https://img.vietqr.io/image/%s-%s-compact.png?amount=%.0f&addInfo=%s&accountName=%s",
+                        bankId, accountNo, totalAmount, "Thanh toan " + orderId, accountName);
+
+                request.setAttribute("QR_URL", qrUrl);
+                request.setAttribute("TOTAL", totalAmount);
+                request.setAttribute("ORDER_ID", orderId);
+                request.getRequestDispatcher("displayQR.jsp").forward(request, response);
+            }
+        } catch (Exception e) {
+            log("Error at OrderController: " + e.toString());
         }
     }
 
-// <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
-    /**
-     * Handles the HTTP <code>GET</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         processRequest(request, response);
     }
 
-    /**
-     * Handles the HTTP <code>POST</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         processRequest(request, response);
     }
-
-    /**
-     * Returns a short description of the servlet.
-     *
-     * @return a String containing servlet description
-     */
-    @Override
-    public String getServletInfo() {
-        return "Short description";
-    }// </editor-fold>
-
 }

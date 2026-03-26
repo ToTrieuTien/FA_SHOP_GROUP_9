@@ -2,6 +2,7 @@ package DAO;
 
 import DTO.OrderDTO;
 import DTO.OrderDetailDTO;
+import Utils.DBUtils;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -19,7 +20,7 @@ public class OrderDAO {
         try {
             conn = Utils.DBUtils.getConnection();
             if (conn != null) {
-                conn.setAutoCommit(false); 
+                conn.setAutoCommit(false);
 
                 String sqlOrder = "INSERT INTO Orders(UserID, OrderDate, TotalMoney, ShippingAddress, Phone, Status) VALUES(?,?,?,?,?,?)";
                 PreparedStatement stmOrder = conn.prepareStatement(sqlOrder, Statement.RETURN_GENERATED_KEYS);
@@ -67,10 +68,16 @@ public class OrderDAO {
                 conn.setAutoCommit(true);
             }
         } catch (Exception e) {
-            if (conn != null) try { conn.rollback(); } catch (SQLException ex) { }
+            if (conn != null) try {
+                conn.rollback();
+            } catch (SQLException ex) {
+            }
             e.printStackTrace();
         } finally {
-            if (conn != null) try { conn.close(); } catch (SQLException e) { }
+            if (conn != null) try {
+                conn.close();
+            } catch (SQLException e) {
+            }
         }
         return check;
     }
@@ -81,7 +88,7 @@ public class OrderDAO {
         String sql = "SELECT o.OrderID, u.FullName, o.OrderDate, o.TotalMoney, o.Status "
                 + "FROM Orders o JOIN Users u ON o.UserID = u.UserID "
                 + "ORDER BY o.OrderDate DESC";
-        try (Connection conn = Utils.DBUtils.getConnection(); PreparedStatement stm = conn.prepareStatement(sql); ResultSet rs = stm.executeQuery()) {
+        try ( Connection conn = Utils.DBUtils.getConnection();  PreparedStatement stm = conn.prepareStatement(sql);  ResultSet rs = stm.executeQuery()) {
             while (rs.next()) {
                 OrderDTO order = new OrderDTO();
                 order.setOrderID(rs.getInt("OrderID"));
@@ -91,18 +98,22 @@ public class OrderDAO {
                 order.setStatus(rs.getString("Status"));
                 list.add(order);
             }
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return list;
     }
 
     // 3. Cập nhật trạng thái đơn hàng (Dùng cho UpdateOrderStatusController)
     public boolean updateOrderStatus(int orderID, String status) {
         String sql = "UPDATE Orders SET Status = ? WHERE OrderID = ?";
-        try (Connection conn = Utils.DBUtils.getConnection(); PreparedStatement stm = conn.prepareStatement(sql)) {
+        try ( Connection conn = Utils.DBUtils.getConnection();  PreparedStatement stm = conn.prepareStatement(sql)) {
             stm.setNString(1, status);
             stm.setInt(2, orderID);
             return stm.executeUpdate() > 0;
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return false;
     }
 
@@ -113,10 +124,10 @@ public class OrderDAO {
                 + "FROM Orders o JOIN Users u ON o.UserID = u.UserID "
                 + "WHERE u.FullName LIKE ? OR CAST(o.OrderID AS VARCHAR) LIKE ? "
                 + "ORDER BY o.OrderDate DESC";
-        try (Connection conn = Utils.DBUtils.getConnection(); PreparedStatement stm = conn.prepareStatement(sql)) {
+        try ( Connection conn = Utils.DBUtils.getConnection();  PreparedStatement stm = conn.prepareStatement(sql)) {
             stm.setNString(1, "%" + keyword + "%");
             stm.setString(2, "%" + keyword + "%");
-            try (ResultSet rs = stm.executeQuery()) {
+            try ( ResultSet rs = stm.executeQuery()) {
                 while (rs.next()) {
                     OrderDTO order = new OrderDTO();
                     order.setOrderID(rs.getInt("OrderID"));
@@ -127,7 +138,9 @@ public class OrderDAO {
                     list.add(order);
                 }
             }
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return list;
     }
 
@@ -136,9 +149,9 @@ public class OrderDAO {
         String sql = "SELECT o.OrderID, u.FullName, o.OrderDate, o.TotalMoney, o.Status, o.ShippingAddress, o.Phone "
                 + "FROM Orders o JOIN Users u ON o.UserID = u.UserID "
                 + "WHERE o.OrderID = ?";
-        try (Connection conn = Utils.DBUtils.getConnection(); PreparedStatement stm = conn.prepareStatement(sql)) {
+        try ( Connection conn = Utils.DBUtils.getConnection();  PreparedStatement stm = conn.prepareStatement(sql)) {
             stm.setInt(1, orderID);
-            try (ResultSet rs = stm.executeQuery()) {
+            try ( ResultSet rs = stm.executeQuery()) {
                 if (rs.next()) {
                     OrderDTO order = new OrderDTO();
                     order.setOrderID(rs.getInt("OrderID"));
@@ -151,7 +164,9 @@ public class OrderDAO {
                     return order;
                 }
             }
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return null;
     }
 
@@ -163,9 +178,9 @@ public class OrderDAO {
                 + "JOIN ProductVariants pv ON d.VariantID = pv.VariantID "
                 + "JOIN Products p ON pv.ProductID = p.ProductID "
                 + "WHERE d.OrderID = ?";
-        try (Connection conn = Utils.DBUtils.getConnection(); PreparedStatement stm = conn.prepareStatement(sql)) {
+        try ( Connection conn = Utils.DBUtils.getConnection();  PreparedStatement stm = conn.prepareStatement(sql)) {
             stm.setInt(1, orderID);
-            try (ResultSet rs = stm.executeQuery()) {
+            try ( ResultSet rs = stm.executeQuery()) {
                 while (rs.next()) {
                     OrderDetailDTO item = new OrderDetailDTO();
                     item.setOrderDetailID(rs.getInt("OrderDetailID"));
@@ -177,7 +192,93 @@ public class OrderDAO {
                     list.add(item);
                 }
             }
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return list;
+    }
+    // 7. Lấy lịch sử đơn hàng của 1 User cụ thể (Dùng cho "Theo dõi đơn hàng")
+
+    public List<OrderDTO> getOrdersByUserID(String userID) {
+        List<OrderDTO> list = new ArrayList<>();
+        // FIX: JOIN với bảng Users để lấy FullName làm CustomerName
+        String sql = "SELECT o.OrderID, u.FullName, o.OrderDate, o.TotalMoney, o.Status, o.ShippingAddress, o.Phone "
+                + "FROM Orders o JOIN Users u ON o.UserID = u.UserID "
+                + "WHERE o.UserID = ? "
+                + "ORDER BY o.OrderDate DESC";
+        try ( Connection conn = Utils.DBUtils.getConnection();  PreparedStatement stm = conn.prepareStatement(sql)) {
+
+            stm.setString(1, userID);
+            try ( ResultSet rs = stm.executeQuery()) {
+                while (rs.next()) {
+                    OrderDTO order = new OrderDTO();
+                    order.setOrderID(rs.getInt("OrderID"));
+                    order.setUserID(userID);
+                    // FIX: Lấy FullName từ câu JOIN ở trên
+                    order.setCustomerName(rs.getNString("FullName"));
+                    order.setOrderDate(rs.getTimestamp("OrderDate"));
+                    order.setTotalMoney(rs.getDouble("TotalMoney"));
+                    order.setStatus(rs.getString("Status"));
+                    order.setShippingAddress(rs.getNString("ShippingAddress"));
+                    order.setPhone(rs.getString("Phone"));
+                    list.add(order);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+    // 8. Hủy đơn hàng (Dùng cho User)
+
+    public boolean cancelOrder(int orderID) {
+        // Chỉ cho phép hủy nếu đơn đang ở trạng thái '1' (Chờ xác nhận) hoặc 'Awaiting Payment'
+        String sql = "UPDATE Orders SET Status = N'Canceled' WHERE OrderID = ? AND (Status = '1' OR Status = 'Processing' OR Status = 'Awaiting Payment')";
+        try ( Connection conn = Utils.DBUtils.getConnection();  PreparedStatement stm = conn.prepareStatement(sql)) {
+            stm.setInt(1, orderID);
+            return stm.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    //9.Cập nhật trạng thái sang 'Chờ xác nhận' thay vì cho đi giao luôn
+    public boolean confirmPaymentRequest(int orderID, String userID) {
+        String sql = "UPDATE Orders SET Status = N'Awaiting Confirmation' "
+                + "WHERE OrderID = ? AND UserID = ? AND Status = N'Awaiting Payment'";
+        try ( Connection conn = Utils.DBUtils.getConnection();  PreparedStatement stm = conn.prepareStatement(sql)) {
+            stm.setInt(1, orderID);
+            stm.setString(2, userID);
+            return stm.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean deleteOrder(int orderID) {
+        String sqlDeleteDetails = "DELETE FROM tblOrderDetails WHERE OrderID = ?";
+        String sqlDeleteOrder = "DELETE FROM tblOrders WHERE OrderID = ?";
+        try ( Connection conn = DBUtils.getConnection()) {
+            conn.setAutoCommit(false); // Bắt đầu transaction
+            try ( PreparedStatement ps1 = conn.prepareStatement(sqlDeleteDetails);  PreparedStatement ps2 = conn.prepareStatement(sqlDeleteOrder)) {
+
+                ps1.setInt(1, orderID);
+                ps1.executeUpdate();
+
+                ps2.setInt(1, orderID);
+                int row = ps2.executeUpdate();
+
+                conn.commit(); // Hoàn tất xóa cả 2 bảng
+                return row > 0;
+            } catch (Exception e) {
+                conn.rollback();
+                e.printStackTrace();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 }

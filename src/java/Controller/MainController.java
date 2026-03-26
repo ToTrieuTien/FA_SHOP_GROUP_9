@@ -52,7 +52,21 @@ public class MainController extends HttpServlet {
                     case "success":
                         url = "success.jsp";
                         break;
-
+                    //Theo dõi đơn hàng đã đặt Tô Triệu Tiến
+                    case "view-my-orders":
+                        url = "OrderController";
+                        break;
+                    //Hủy đơn hàng
+                    case "cancel-order":
+                        url = "CancelOrderController";
+                        break;
+                    // Xác thực đã chuyển tiền qua QR
+                    case "confirm-payment":
+                        url = "ConfirmPaymentController";
+                        break;
+                    case "delete-order":
+                        url = "CartController";
+                        break;
                     default:
                         request.setAttribute("ERROR", "Hành động (Action) không được hỗ trợ!");
                         url = "error.jsp";

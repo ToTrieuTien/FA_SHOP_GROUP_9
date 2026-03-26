@@ -45,8 +45,7 @@ public class CheckoutController extends HttpServlet {
             String phone = request.getParameter("phone");
             String address = request.getParameter("shippingAddress");
             String paymentMethod = request.getParameter("paymentMethod");
-            String totalRaw = request.getParameter("totalMoney");
-            double total = (totalRaw != null && !totalRaw.isEmpty()) ? Double.parseDouble(totalRaw) : 0;
+            double total = cart.getTotalPrice();
 
             // 4. Validation
             if (phone == null || phone.trim().isEmpty() || address == null || address.trim().isEmpty()) {
