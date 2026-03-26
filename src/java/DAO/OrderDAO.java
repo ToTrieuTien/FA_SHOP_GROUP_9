@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package DAO;
 
 import DTO.OrderDTO;
@@ -14,64 +10,80 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- *
- * @author FPT
- */
 public class OrderDAO {
 
-    // 1. Đặt hàng (Cho khách hàng - Transaction)
+    // 1. Đặt hàng (Transaction - Đã gộp Phone và VariantID theo ERD mới nhất)
     public boolean insertOrder(OrderDTO order, List<OrderDetailDTO> listDetail) {
         boolean check = false;
-        String sqlOrder = "INSERT INTO Orders(UserID, OrderDate, TotalMoney, ShippingAddress, Phone, Status) VALUES(?,?,?,?,?,?)";
-        String sqlDetail = "INSERT INTO OrderDetails(OrderID, ProductID, Quantity, Price) VALUES(?,?,?,?)";
-
-        try ( Connection conn = Utils.DBUtils.getConnection()) {
+        Connection conn = null;
+        try {
+            conn = Utils.DBUtils.getConnection();
             if (conn != null) {
-                conn.setAutoCommit(false); // Quản lý Transaction
+                conn.setAutoCommit(false); // Bắt đầu Transaction
 
-                try ( PreparedStatement stmOrder = conn.prepareStatement(sqlOrder, Statement.RETURN_GENERATED_KEYS)) {
-                    stmOrder.setString(1, order.getUserID());
-                    stmOrder.setTimestamp(2, order.getOrderDate());
-                    stmOrder.setDouble(3, order.getTotalMoney()); // Khớp cột TotalMoney
-                    stmOrder.setNString(4, order.getShippingAddress());
-                    stmOrder.setString(5, order.getPhone());
-                    stmOrder.setString(6, order.getStatus());
+                String sqlOrder = "INSERT INTO Orders(UserID, OrderDate, TotalMoney, ShippingAddress, Phone, Status) VALUES(?,?,?,?,?,?)";
+                PreparedStatement stmOrder = conn.prepareStatement(sqlOrder, Statement.RETURN_GENERATED_KEYS);
 
-                    if (stmOrder.executeUpdate() > 0) {
-                        ResultSet rs = stmOrder.getGeneratedKeys();
-                        if (rs.next()) {
-                            int orderID = rs.getInt(1);
-                            try ( PreparedStatement stmDetail = conn.prepareStatement(sqlDetail)) {
-                                for (OrderDetailDTO d : listDetail) {
-                                    stmDetail.setInt(1, orderID);
-                                    stmDetail.setInt(2, d.getProductID()); // Dùng ProductID thay vì VariantID
-                                    stmDetail.setInt(3, d.getQuantity());
-                                    stmDetail.setDouble(4, d.getPrice());
-                                    stmDetail.addBatch();
-                                }
-                                stmDetail.executeBatch();
-                                conn.commit(); // Thành công thì commit
-                                check = true;
+                stmOrder.setString(1, order.getUserID());
+                stmOrder.setTimestamp(2, order.getOrderDate());
+                stmOrder.setDouble(3, order.getTotalMoney());
+                stmOrder.setNString(4, order.getShippingAddress());
+                stmOrder.setString(5, order.getPhone());
+                stmOrder.setString(6, order.getStatus());
+
+                if (stmOrder.executeUpdate() > 0) {
+                    ResultSet rs = stmOrder.getGeneratedKeys();
+                    if (rs.next()) {
+                        int orderID = rs.getInt(1);
+                        // Cấu trúc OrderDetails: OrderID, Quantity, Price, ProductID (hoặc VariantID)
+                        String sqlDetail = "INSERT INTO OrderDetails(OrderID, Quantity, Price, ProductID) VALUES(?,?,?,?)";
+                        PreparedStatement stmDetail = conn.prepareStatement(sqlDetail);
+
+                        for (OrderDetailDTO d : listDetail) {
+                            stmDetail.setInt(1, orderID);
+                            stmDetail.setInt(2, d.getQuantity());
+                            stmDetail.setDouble(3, d.getPrice());
+                            stmDetail.setInt(4, d.getProductID());
+                            stmDetail.addBatch();
+                        }
+
+                        int[] results = stmDetail.executeBatch();
+                        boolean allInserted = true;
+                        for (int r : results) {
+                            if (r == Statement.EXECUTE_FAILED) {
+                                allInserted = false;
+                                break;
                             }
                         }
+
+                        if (allInserted) {
+                            conn.commit();
+                            check = true;
+                        } else {
+                            conn.rollback();
+                        }
                     }
-                } catch (Exception e) {
-                    conn.rollback(); // Lỗi thì rollback ngay
-                    e.printStackTrace();
                 }
                 conn.setAutoCommit(true);
             }
         } catch (Exception e) {
+            if (conn != null) try {
+                conn.rollback();
+            } catch (SQLException ex) {
+            }
             e.printStackTrace();
+        } finally {
+            if (conn != null) try {
+                conn.close();
+            } catch (SQLException e) {
+            }
         }
         return check;
     }
 
-    // 2. Lấy danh sách đơn hàng cho Admin
+    // --- CÁC HÀM QUẢN LÝ CỦA THÀNH (ADMIN) ---
     public List<OrderDTO> getAllOrders() {
         List<OrderDTO> list = new ArrayList<>();
-        // JOIN với bảng Users để lấy FullName
         String sql = "SELECT o.OrderID, u.FullName, o.OrderDate, o.TotalMoney, o.Status "
                 + "FROM Orders o JOIN Users u ON o.UserID = u.UserID "
                 + "ORDER BY o.OrderDate DESC";
@@ -81,7 +93,7 @@ public class OrderDAO {
                 order.setOrderID(rs.getInt("OrderID"));
                 order.setCustomerName(rs.getNString("FullName"));
                 order.setOrderDate(rs.getTimestamp("OrderDate"));
-                order.setTotalMoney(rs.getDouble("TotalMoney")); // Khớp TotalMoney
+                order.setTotalMoney(rs.getDouble("TotalMoney"));
                 order.setStatus(rs.getString("Status"));
                 list.add(order);
             }
@@ -91,7 +103,6 @@ public class OrderDAO {
         return list;
     }
 
-    // 3. Cập nhật trạng thái đơn hàng cho Admin
     public boolean updateOrderStatus(int orderID, String status) {
         String sql = "UPDATE Orders SET Status = ? WHERE OrderID = ?";
         try ( Connection conn = Utils.DBUtils.getConnection();  PreparedStatement stm = conn.prepareStatement(sql)) {
@@ -104,21 +115,15 @@ public class OrderDAO {
         return false;
     }
 
-    // 4. Tìm kiếm đơn hàng theo mã đơn hoặc tên khách hàng
     public List<OrderDTO> searchOrders(String keyword) {
         List<OrderDTO> list = new ArrayList<>();
-        // Kết hợp tìm theo tên khách (FullName) và mã đơn hàng (OrderID)
         String sql = "SELECT o.OrderID, u.FullName, o.OrderDate, o.TotalMoney, o.Status "
                 + "FROM Orders o JOIN Users u ON o.UserID = u.UserID "
                 + "WHERE u.FullName LIKE ? OR CAST(o.OrderID AS VARCHAR) LIKE ? "
                 + "ORDER BY o.OrderDate DESC";
-
         try ( Connection conn = Utils.DBUtils.getConnection();  PreparedStatement stm = conn.prepareStatement(sql)) {
-
-            // Set từ khóa cho cả 2 dấu chấm hỏi (?)
             stm.setNString(1, "%" + keyword + "%");
             stm.setString(2, "%" + keyword + "%");
-
             try ( ResultSet rs = stm.executeQuery()) {
                 while (rs.next()) {
                     OrderDTO order = new OrderDTO();
@@ -136,7 +141,6 @@ public class OrderDAO {
         return list;
     }
 
-    // 5. Lấy chi tiết thông tin chung của 1 đơn hàng (Dành cho trang Chi tiết)
     public OrderDTO getOrderById(int orderID) {
         String sql = "SELECT o.OrderID, u.FullName, o.OrderDate, o.TotalMoney, o.Status, o.ShippingAddress, o.Phone "
                 + "FROM Orders o JOIN Users u ON o.UserID = u.UserID "
@@ -162,10 +166,8 @@ public class OrderDAO {
         return null;
     }
 
-    // 6. Lấy danh sách các món đồ nằm trong đơn hàng đó
     public List<OrderDetailDTO> getItemsByOrderId(int orderID) {
         List<OrderDetailDTO> list = new ArrayList<>();
-        // Kết nối bảng OrderDetails và Products để lấy được ProductName
         String sql = "SELECT d.OrderDetailID, d.OrderID, d.ProductID, p.ProductName, d.Quantity, d.Price "
                 + "FROM OrderDetails d JOIN Products p ON d.ProductID = p.ProductID "
                 + "WHERE d.OrderID = ?";

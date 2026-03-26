@@ -19,6 +19,9 @@ public class ProductDTO {
     private boolean status;
     
     private int variantID;
+    
+    private String size;
+    private String color;
 
     public ProductDTO() {
     }
@@ -119,6 +122,22 @@ public class ProductDTO {
 
     public void setCategoryName(String categoryName) {
         this.categoryName = categoryName;
+    }
+
+    public String getSize() {
+        return size;
+    }
+
+    public void setSize(String size) {
+        this.size = size;
+    }
+
+    public String getColor() {
+        return color;
+    }
+
+    public void setColor(String color) {
+        this.color = color;
     }
     
     

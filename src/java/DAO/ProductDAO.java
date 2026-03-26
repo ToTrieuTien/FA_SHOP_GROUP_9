@@ -224,6 +224,36 @@ public class ProductDAO {
         }
         return check;
     }
+    
+    public ProductDTO getProductByVariantID(int variantID) {
+    ProductDTO product = null;
+    // Sử dụng Try-with-resources để tự động đóng Connection/Statement/ResultSet
+    String sql = "SELECT pv.VariantID, p.ProductName, p.BasePrice, i.ImageURL, pv.Size, pv.Color "
+               + "FROM ProductVariants pv "
+               + "JOIN Products p ON pv.ProductID = p.ProductID "
+               + "LEFT JOIN ProductImages i ON p.ProductID = i.ProductID "
+               + "WHERE pv.VariantID = ? AND (i.IsPrimary = 1 OR i.ImageURL IS NULL)";
+
+    try (Connection conn = DBUtils.getConnection(); 
+         PreparedStatement ptm = conn.prepareStatement(sql)) {
+        
+        ptm.setInt(1, variantID);
+        try (ResultSet rs = ptm.executeQuery()) {
+            if (rs.next()) {
+                product = new ProductDTO();
+                product.setVariantID(rs.getInt("VariantID"));
+                product.setProductName(rs.getNString("ProductName"));
+                // Lấy BasePrice từ bảng Products vì ProductVariants không có cột Price
+                product.setBasePrice(rs.getDouble("BasePrice")); 
+                product.setImageURL(rs.getString("ImageURL"));
+                // Tiến nhớ bổ sung setSize() và setColor() vào ProductDTO nếu cần hiển thị nhé
+            }
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    return product;
+}
 
     public List<ProductDTO> searchProducts(String keyword) {
         List<ProductDTO> list = new ArrayList<>();

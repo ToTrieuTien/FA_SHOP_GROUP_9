@@ -74,4 +74,14 @@ public class CartDTO {
         }
         return this.cart.size();
     }
+    
+    public double getTotalPrice() {
+    double total = 0;
+    if (this.cart != null) {
+        for (ProductDTO product : this.cart.values()) {
+            total += product.getBasePrice() * product.getQuantity();
+        }
+    }
+    return total;
+}
 }

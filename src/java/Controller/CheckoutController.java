@@ -1,7 +1,3 @@
-/*
-     * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
-     * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
- */
 package Controller;
 
 import DAO.OrderDAO;
@@ -11,10 +7,9 @@ import DTO.OrderDetailDTO;
 import DTO.ProductDTO;
 import DTO.UserDTO;
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -22,26 +17,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-/**
- *
- * @author FPT
- */
 @WebServlet(name = "CheckoutController", urlPatterns = {"/CheckoutController"})
 public class CheckoutController extends HttpServlet {
 
-    /**
-     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
-     * methods.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
-        request.setCharacterEncoding("UTF-8"); // Đảm bảo tiếng Việt không bị lỗi font
+        request.setCharacterEncoding("UTF-8"); // Đảm bảo tiếng Việt không bị lỗi font khi nhận từ Form
         HttpSession session = request.getSession();
 
         try {
@@ -59,49 +41,76 @@ public class CheckoutController extends HttpServlet {
                 return;
             }
 
-            // 3. Lấy thông tin giao hàng từ Form
+            // 3. Lấy thông tin giao hàng và thanh toán từ Form
             String phone = request.getParameter("phone");
             String address = request.getParameter("shippingAddress");
             String paymentMethod = request.getParameter("paymentMethod");
             String totalRaw = request.getParameter("totalMoney");
             double total = (totalRaw != null && !totalRaw.isEmpty()) ? Double.parseDouble(totalRaw) : 0;
 
+            // 4. Validation dữ liệu đầu vào
             if (phone == null || phone.trim().isEmpty() || address == null || address.trim().isEmpty()) {
                 request.setAttribute("ERROR", "Vui lòng cung cấp đầy đủ thông tin giao hàng!");
+                request.setAttribute("SAVED_PHONE", phone);
+                request.setAttribute("SAVED_ADDRESS", address);
                 request.getRequestDispatcher("cart.jsp").forward(request, response);
                 return;
             }
 
-            // 4. Khởi tạo OrderDTO khớp với Database (TotalMoney, ShippingAddress)
+            // 5. Khởi tạo OrderDTO khớp với Database
             OrderDTO order = new OrderDTO();
             order.setUserID(loginUser.getUserID());
             order.setOrderDate(new java.sql.Timestamp(System.currentTimeMillis()));
             order.setTotalMoney(total);
             order.setShippingAddress(address);
             order.setPhone(phone);
-            order.setStatus("Pending"); // Trạng thái mặc định khi mới đặt hàng
 
-            // 5. Chuyển đổi từ Cart sang List<OrderDetailDTO> (SỬA LỖI TẠI ĐÂY)
+            // Set trạng thái dựa trên phương thức thanh toán
+            order.setStatus("QR".equals(paymentMethod) ? "Awaiting Payment" : "Processing");
+
+            // 6. Chuyển đổi từ Cart sang List<OrderDetailDTO> (Hỗ trợ cả VariantID nếu có)
             List<OrderDetailDTO> listDetail = new ArrayList<>();
             for (ProductDTO item : cart.getCart().values()) {
-                // Truyền đủ 6 tham số: ID, OrderID, ProductID, ProductName, Quantity, Price
-                listDetail.add(new OrderDetailDTO(
-                        0, // orderDetailID (DB tự tăng)
-                        0, // orderID (DAO sẽ gán sau)
-                        item.getProductID(), // productID
-                        item.getProductName(), // productName
-                        item.getQuantity(), // quantity
-                        item.getBasePrice() // price (Đơn giá tại thời điểm mua)
-                ));
+                OrderDetailDTO detail = new OrderDetailDTO();
+                // Ưu tiên VariantID từ code của bạn em để hỗ trợ chọn size/màu
+                int productOrVariantID = (item.getVariantID() != 0) ? item.getVariantID() : item.getProductID();
+
+                detail.setProductID(productOrVariantID);
+                detail.setQuantity(item.getQuantity());
+                detail.setPrice(item.getBasePrice());
+                listDetail.add(detail);
             }
 
-            // 6. Gọi DAO lưu vào Database
+            // 7. Gọi DAO lưu vào Database (Sử dụng Transaction)
             OrderDAO dao = new OrderDAO();
             boolean isSuccess = dao.insertOrder(order, listDetail);
 
             if (isSuccess) {
-                session.removeAttribute("CART"); // Xóa giỏ hàng sau khi đặt thành công
-                response.sendRedirect("success.jsp");
+                if ("QR".equals(paymentMethod)) {
+                    // --- LUỒNG THANH TOÁN QR (VietQR API) ---
+                    String bankId = "tpbank";
+                    String accountNo = "0366449758";
+                    String accountName = "TH TrueShop";
+                    String description = "THANH TOAN DON HANG " + loginUser.getUserID();
+
+                    String encodedDesc = URLEncoder.encode(description, "UTF-8");
+                    String encodedName = URLEncoder.encode(accountName, "UTF-8");
+
+                    String qrUrl = String.format("https://img.vietqr.io/image/%s-%s-compact.png?amount=%.0f&addInfo=%s&accountName=%s",
+                            bankId, accountNo, total, encodedDesc, encodedName);
+
+                    request.setAttribute("QR_LINK", qrUrl);
+                    request.setAttribute("TOTAL", total);
+                    request.setAttribute("ORDER_DESC", description);
+
+                    session.removeAttribute("CART");
+                    request.getRequestDispatcher("qr-payment.jsp").forward(request, response);
+                } else {
+                    // --- LUỒNG THANH TOÁN COD ---
+                    session.removeAttribute("CART");
+                    session.setAttribute("SUCCESS_MSG", "Đơn hàng của bạn đã được ghi nhận thành công!");
+                    response.sendRedirect("success.jsp");
+                }
             } else {
                 request.setAttribute("ERROR", "Lỗi hệ thống: Không thể lưu đơn hàng!");
                 request.getRequestDispatcher("cart.jsp").forward(request, response);
@@ -112,42 +121,13 @@ public class CheckoutController extends HttpServlet {
         }
     }
 
-// <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
-    /**
-     * Handles the HTTP <code>GET</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         processRequest(request, response);
     }
 
-    /**
-     * Handles the HTTP <code>POST</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         processRequest(request, response);
     }
-
-    /**
-     * Returns a short description of the servlet.
-     *
-     * @return a String containing servlet description
-     */
-    @Override
-    public String getServletInfo() {
-        return "Short description";
-    }// </editor-fold>
 }

@@ -4,6 +4,7 @@
  */
 package Controller;
 
+import DTO.CartDTO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import javax.servlet.ServletException;
@@ -11,6 +12,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 /**
  *
@@ -30,22 +32,34 @@ public class OrderController extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        response.setContentType("text/html;charset=UTF-8");
-        try ( PrintWriter out = response.getWriter()) {
-            /* TODO output your page here. You may use following sample code. */
-            out.println("<!DOCTYPE html>");
-            out.println("<html>");
-            out.println("<head>");
-            out.println("<title>Servlet OrderController</title>");            
-            out.println("</head>");
-            out.println("<body>");
-            out.println("<h1>Servlet OrderController at " + request.getContextPath() + "</h1>");
-            out.println("</body>");
-            out.println("</html>");
+        // Trong OrderController.java
+        String paymentMethod = request.getParameter("paymentMethod"); // Giá trị từ Radio button
+        HttpSession session = request.getSession();
+        CartDTO cart = (CartDTO) session.getAttribute("CART");
+
+        if (cart != null && "QR".equals(paymentMethod)) {
+            double totalAmount = cart.getTotalPrice();
+            String orderId = "DH" + System.currentTimeMillis(); // Mã đơn hàng tạm thời
+
+            // Cấu hình thông tin chuyển khoản của bạn
+            String bankId = "MB"; // Ví dụ MB Bank
+            String accountNo = "0000000007"; // Số tài khoản của bạn
+            String accountName = "TO TRIEU TIEN";
+
+            // Tạo URL VietQR (Template compact giúp mã gọn hơn)
+            String qrUrl = String.format("https://img.vietqr.io/image/%s-%s-compact.png?amount=%.0f&addInfo=%s&accountName=%s",
+                    bankId, accountNo, totalAmount, "Thanh toan " + orderId, accountName);
+
+            // Đẩy dữ liệu sang trang hiển thị QR
+            request.setAttribute("QR_URL", qrUrl);
+            request.setAttribute("TOTAL", totalAmount);
+            request.setAttribute("ORDER_ID", orderId);
+
+            request.getRequestDispatcher("displayQR.jsp").forward(request, response);
         }
     }
 
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
+// <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
      * Handles the HTTP <code>GET</code> method.
      *

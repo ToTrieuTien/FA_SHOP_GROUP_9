@@ -130,10 +130,30 @@ VALUES
 (N'Quần Jean Slimfit Blue', N'Denim cao cấp, bền màu', 650000, 2, 1),
 (N'Ví Da Fendi Black', N'Da bò thật 100%, ngăn chứa rộng', 1200000, 3, 1);
 
+--Thêm ProductVariants
+INSERT INTO ProductVariants (ProductID, Size, Color, StockQuantity) VALUES (1, 'L', 'Black', 50)
+
 -- Thêm ảnh
 INSERT INTO ProductImages (ProductID, ImageURL, IsPrimary) 
 VALUES 
 (1, 'polo_monogram.png', 1),
 (2, 'jeans_blue.png', 1),
 (3, 'wallet_fendi.png', 1);
+GO
+
+ALTER TABLE OrderDetails DROP CONSTRAINT IF EXISTS FK__OrderDeta__Produ__19DFD96B; 
+GO
+
+-- 2. Xóa cột ProductID cũ
+ALTER TABLE OrderDetails DROP COLUMN ProductID;
+GO
+
+-- 3. Thêm cột VariantID mới (Để liên kết với bảng ProductVariants)
+ALTER TABLE OrderDetails ADD VariantID INT;
+GO
+
+-- 4. Tạo khóa ngoại mới liên kết sang bảng ProductVariants
+ALTER TABLE OrderDetails 
+ADD CONSTRAINT FK_OrderDetails_Variants 
+FOREIGN KEY (VariantID) REFERENCES ProductVariants(VariantID);
 GO
