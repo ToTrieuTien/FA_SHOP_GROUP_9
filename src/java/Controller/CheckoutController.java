@@ -23,7 +23,7 @@ public class CheckoutController extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
-        request.setCharacterEncoding("UTF-8"); // Đảm bảo tiếng Việt không bị lỗi font khi nhận từ Form
+        request.setCharacterEncoding("UTF-8"); 
         HttpSession session = request.getSession();
 
         try {
@@ -41,14 +41,14 @@ public class CheckoutController extends HttpServlet {
                 return;
             }
 
-            // 3. Lấy thông tin giao hàng và thanh toán từ Form
+            // 3. Lấy thông tin từ Form
             String phone = request.getParameter("phone");
             String address = request.getParameter("shippingAddress");
             String paymentMethod = request.getParameter("paymentMethod");
             String totalRaw = request.getParameter("totalMoney");
             double total = (totalRaw != null && !totalRaw.isEmpty()) ? Double.parseDouble(totalRaw) : 0;
 
-            // 4. Validation dữ liệu đầu vào
+            // 4. Validation
             if (phone == null || phone.trim().isEmpty() || address == null || address.trim().isEmpty()) {
                 request.setAttribute("ERROR", "Vui lòng cung cấp đầy đủ thông tin giao hàng!");
                 request.setAttribute("SAVED_PHONE", phone);
@@ -57,37 +57,38 @@ public class CheckoutController extends HttpServlet {
                 return;
             }
 
-            // 5. Khởi tạo OrderDTO khớp với Database
+            // 5. Khởi tạo OrderDTO
             OrderDTO order = new OrderDTO();
             order.setUserID(loginUser.getUserID());
             order.setOrderDate(new java.sql.Timestamp(System.currentTimeMillis()));
             order.setTotalMoney(total);
             order.setShippingAddress(address);
             order.setPhone(phone);
-
-            // Set trạng thái dựa trên phương thức thanh toán
             order.setStatus("QR".equals(paymentMethod) ? "Awaiting Payment" : "Processing");
 
-            // 6. Chuyển đổi từ Cart sang List<OrderDetailDTO> (Hỗ trợ cả VariantID nếu có)
+            // 6. CHUYỂN ĐỔI SANG CHI TIẾT ĐƠN HÀNG (ĐÃ FIX VARIANTID)
             List<OrderDetailDTO> listDetail = new ArrayList<>();
             for (ProductDTO item : cart.getCart().values()) {
                 OrderDetailDTO detail = new OrderDetailDTO();
-                // Ưu tiên VariantID từ code của bạn em để hỗ trợ chọn size/màu
-                int productOrVariantID = (item.getVariantID() != 0) ? item.getVariantID() : item.getProductID();
+                
+                // Lấy VariantID từ item giỏ hàng
+                // Nếu item chưa có VariantID, ta lấy tạm ProductID (với điều kiện DB đã có Variant tương ứng)
+                int vID = (item.getVariantID() != 0) ? item.getVariantID() : item.getProductID();
 
-                detail.setProductID(productOrVariantID);
+                detail.setVariantID(vID); // SỬA: Dùng setVariantID thay cho setProductID
+                detail.setProductName(item.getProductName()); // Lưu tên để hiện chi tiết sau này
                 detail.setQuantity(item.getQuantity());
                 detail.setPrice(item.getBasePrice());
                 listDetail.add(detail);
             }
 
-            // 7. Gọi DAO lưu vào Database (Sử dụng Transaction)
+            // 7. Gọi DAO lưu vào Database
             OrderDAO dao = new OrderDAO();
-            boolean isSuccess = dao.insertOrder(order, listDetail);
+            boolean isSuccess = dao.insertOrder(order, listDetail); // Hàm này giờ sẽ dùng VariantID để lưu
 
             if (isSuccess) {
                 if ("QR".equals(paymentMethod)) {
-                    // --- LUỒNG THANH TOÁN QR (VietQR API) ---
+                    // --- LUỒNG THANH TOÁN QR ---
                     String bankId = "tpbank";
                     String accountNo = "0366449758";
                     String accountName = "TH TrueShop";
