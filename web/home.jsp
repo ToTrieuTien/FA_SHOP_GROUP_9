@@ -66,7 +66,7 @@
                 background: #4CAF50;
             }
 
-            /* --- CSS MEGA MENU (ĐÃ CHỈNH LẠI KHOẢNG CÁCH & FIX LỖI HOVER GAP) --- */
+            /* --- CSS MEGA MENU --- */
             .main-nav {
                 flex: 1;
                 display: flex;
@@ -81,7 +81,6 @@
                 gap: 35px;
             }
 
-            /* 1. TĂNG PADDING ĐỂ KÉO DÀI VÙNG NHẬN DIỆN CHUỘT */
             .nav-item {
                 position: relative;
                 padding: 30px 0;
@@ -132,7 +131,6 @@
                 z-index: 1000;
             }
 
-            /* 2. CẦU TÀNG HÌNH GIỮ MENU KHÔNG BỊ RỚT NHỊP KHI LƯỚT CHUỘT XUỐNG */
             .mega-menu::before {
                 content: "";
                 position: absolute;
@@ -255,12 +253,11 @@
             </nav>
 
             <div style="display: flex; align-items: center; gap: 30px; white-space: nowrap;">
-
                 <div class="search-bar">
                     <form action="SearchController" method="GET" style="display: flex; align-items: center; background: #ffffff; border-radius: 25px; padding: 6px 15px; width: 260px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);">
                         <input type="text" name="query" placeholder="Tìm kiếm sản phẩm..." style="border: none; outline: none; flex: 1; padding: 4px 0; font-size: 14px; color: #333; background: transparent;">
                         <button type="submit" style="border: none; background: transparent; cursor: pointer; color: #1a233a; font-size: 16px; padding: 0;">
-                            <i class="fa fa-search">🔍</i> 
+                            🔍
                         </button>
                     </form>
                 </div>
@@ -279,12 +276,14 @@
                         </c:otherwise>
                     </c:choose>
                 </div>
-
             </div>
         </div>
 
         <div class="container">
-            <h2 style="text-align: center; margin-bottom: 40px; letter-spacing: 2px; font-size: 28px;">SẢN PHẨM MỚI NHẤT</h2>
+            <h2 style="text-align: center; margin-bottom: 40px; letter-spacing: 2px; font-size: 28px;">
+                ${not empty requestScope.TITLE ? requestScope.TITLE : "SẢN PHẨM MỚI NHẤT"}
+            </h2>
+            
             <div class="product-grid">
                 <c:forEach var="p" items="${requestScope.LIST_PRODUCT}">
                     <div class="product-item">

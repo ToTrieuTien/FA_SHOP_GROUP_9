@@ -33,7 +33,6 @@ public class RegisterController extends HttpServlet {
             String address = request.getParameter("txtAddress");
             String phone = request.getParameter("txtPhone");
             int roleID = 2; // Giả sử 2 là RoleID cho khách hàng (User)
-            boolean status = true;
 
             boolean checkValidation = true;
 
@@ -45,7 +44,6 @@ public class RegisterController extends HttpServlet {
 
             if (checkValidation) {
                 // 3. Tạo đối tượng DTO để truyền xuống DAO
-                // Lưu ý: Thứ tự tham số phải khớp với Constructor trong UserDTO của bạn
                 UserDTO user = new UserDTO();
                 user.setUserID(userID);
                 user.setFullName(fullName);
@@ -54,15 +52,20 @@ public class RegisterController extends HttpServlet {
                 user.setAddress(address);
                 user.setPhone(phone);
                 user.setEmail(email);
-                user.setStatus(status);
 
-                // 4. Gọi DAO để thực hiện Insert
+                // Tạo mã xác thực ngẫu nhiên
+                String verifyCode = java.util.UUID.randomUUID().toString();
+
+                // 4. Gọi DAO để thực hiện Insert kèm mã xác thực
                 UserDAO dao = new UserDAO();
-                boolean checkInsert = dao.insert(user);
+                boolean checkInsert = dao.insert(user, verifyCode);
                 
                 if (checkInsert) {
+                    // 5. Gửi email xác thực (ĐÃ THÊM request.getServletContext() VÀO ĐÂY)
+                    Utils.EmailUtils.sendVerificationEmail(email, verifyCode, request.getServletContext());
+
                     url = SUCCESS;
-                    request.setAttribute("MESSAGE", "Đăng ký thành công! Vui lòng đăng nhập.");
+                    request.setAttribute("MESSAGE", "Đăng ký thành công! Vui lòng kiểm tra Email của bạn để xác thực tài khoản trước khi đăng nhập.");
                 } else {
                     request.setAttribute("ERROR", "Đăng ký thất bại, vui lòng thử lại!");
                 }

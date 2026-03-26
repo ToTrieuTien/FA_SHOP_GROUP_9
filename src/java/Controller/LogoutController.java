@@ -15,19 +15,18 @@ public class LogoutController extends HttpServlet {
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         try {
-            // Lấy session hiện tại
+            // Lấy session hiện tại nhưng không tạo mới nếu chưa có 
             HttpSession session = request.getSession(false);
             if (session != null) {
-                // Xóa sạch toàn bộ session
+                // Xóa sạch toàn bộ dữ liệu session 
                 session.invalidate();
             }
         } finally {
-            // Đuổi về trang chủ (không cần truyền param, MainController sẽ tự đá sang Home)
-            response.sendRedirect("MainController");
+            // SỬA TẠI ĐÂY: Điều hướng trực tiếp về trang login.jsp thay vì MainController 
+            response.sendRedirect("login.jsp");
         }
     }
 
-    // --- HAI HÀM NÀY CŨNG BẮT BUỘC PHẢI CÓ ---
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
