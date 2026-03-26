@@ -130,6 +130,9 @@ VALUES
 (N'Quần Jean Slimfit Blue', N'Denim cao cấp, bền màu', 650000, 2, 1),
 (N'Ví Da Fendi Black', N'Da bò thật 100%, ngăn chứa rộng', 1200000, 3, 1);
 
+--Thêm ProductVariants
+INSERT INTO ProductVariants (ProductID, Size, Color, StockQuantity) VALUES (1, 'L', 'Black', 50)
+
 -- Thêm ảnh
 INSERT INTO ProductImages (ProductID, ImageURL, IsPrimary) 
 VALUES 
