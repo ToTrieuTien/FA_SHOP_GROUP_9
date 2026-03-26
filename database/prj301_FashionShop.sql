@@ -90,3 +90,4 @@ INSERT INTO ProductVariants (ProductID, Size, Color, StockQuantity) VALUES
 INSERT INTO ProductImages (ProductID, ImageURL, IsPrimary) VALUES 
 (1, 'polo.png', 1), (2, 'jean.png', 1), (3, 'fendi.png', 1);
 GO
+

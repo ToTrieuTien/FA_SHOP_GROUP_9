@@ -70,17 +70,28 @@ public class MainController extends HttpServlet {
                     case "clear-cart":
                         url = "CartController";
                         break;
-                    //Trả về trang success sau khi thanh tons thành công trên CheckoutController Tô Triệu Tiến
+                    // Trả về trang success sau khi thanh toán thành công
                     case "success":
                         url = "success.jsp";
                         break;
-                         // THÊM ĐOẠN NÀY VÀO ĐỂ ĐÓN NÚT BẤM TỪ TRANG QR
-                    
-                    case "confirm-payment":
-                        request.setAttribute("SUCCESS_MSG", "Cảm ơn bạn! Đơn hàng đã được xác nhận thanh toán.");
-                        url = "success.jsp";
-                        break;
 
+                    // --- CÁC CHỨC NĂNG MỚI CỦA TEAMMATE (TÔ TRIỆU TIẾN) ---
+                    // Theo dõi đơn hàng đã đặt
+                    case "view-my-orders":
+                        url = "OrderController";
+                        break;
+                    // Hủy đơn hàng
+                    case "cancel-order":
+                        url = "CancelOrderController";
+                        break;
+                    // Xác thực đã chuyển tiền qua QR (Dùng Controller của Tiến để xử lý Database)
+                    case "confirm-payment":
+                        url = "ConfirmPaymentController";
+                        break;
+                    // Xóa đơn hàng
+                    case "delete-order":
+                        url = "CartController";
+                        break;
                     default:
                         request.setAttribute("ERROR", "Hành động (Action) không được hỗ trợ!");
                         url = "error.jsp";
