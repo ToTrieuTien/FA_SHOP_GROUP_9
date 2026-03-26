@@ -68,6 +68,11 @@ public class CheckoutController extends HttpServlet {
             // 4. Validation (Kiểm tra dữ liệu đầu vào lần cuối)
             if (phone == null || phone.trim().isEmpty() || address == null || address.trim().isEmpty()) {
                 request.setAttribute("ERROR", "Vui lòng cung cấp đầy đủ thông tin giao hàng!");
+
+                // THÊM 2 DÒNG NÀY: Gửi ngược dữ liệu người dùng đã nhập về lại JSP
+                request.setAttribute("SAVED_PHONE", phone);
+                request.setAttribute("SAVED_ADDRESS", address);
+
                 request.getRequestDispatcher("cart.jsp").forward(request, response);
                 return;
             }
@@ -83,10 +88,18 @@ public class CheckoutController extends HttpServlet {
             // Thiết lập trạng thái đơn hàng dựa trên phương thức thanh toán
             order.setStatus("QR".equals(paymentMethod) ? "Awaiting Payment" : "Processing");
 
-            // Lấy danh sách sản phẩm từ giỏ hàng để lưu vào chi tiết đơn hàng
             List<OrderDetailDTO> listDetail = new ArrayList<>();
             for (ProductDTO item : cart.getCart().values()) {
-                listDetail.add(new OrderDetailDTO(0, 0, item.getProductID(), item.getQuantity(), item.getTotalPrice()));
+                // Kiểm tra xem variantID có bị bằng 0 không
+                int vID = item.getVariantID();
+
+                // Nếu vID = 0, tạm thời lấy ProductID để test (nếu DB của bạn cho phép) 
+                // Hoặc tốt nhất là phải đảm bảo item này đã có VariantID từ lúc chọn Size/Color
+                if (vID == 0) {
+                    vID = item.getProductID(); // Chỉ dùng nếu bảng OrderDetails nhận ProductID
+                }
+
+                listDetail.add(new OrderDetailDTO(0, 0, vID, item.getQuantity(), item.getBasePrice()));
             }
 
             OrderDAO dao = new OrderDAO();

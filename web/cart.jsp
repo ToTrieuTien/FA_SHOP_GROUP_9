@@ -16,7 +16,6 @@
             --bg-body: #f0f2f5;
         }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-body); margin: 0; color: #333; }
-        
         .container { display: flex; max-width: 1150px; margin: 40px auto; gap: 30px; padding: 0 15px; }
         
         /* Cột trái: Form thông tin */
@@ -48,7 +47,6 @@
             color: #444;
         }
         
-        /* Ô nhập liệu thiết kế nổi bật */
         .input-control { 
             width: 100%; 
             padding: 15px; 
@@ -92,15 +90,10 @@
         }
         
         .summary-title { font-size: 1.3rem; font-weight: 700; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #eee; }
-
-        .cart-item { 
-            padding: 15px 0; 
-            border-bottom: 1px solid #f1f1f1;
-        }
+        .cart-item { padding: 15px 0; border-bottom: 1px solid #f1f1f1; }
         .item-info { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
         .item-name { font-weight: 600; font-size: 0.95rem; margin: 0; flex: 1; padding-right: 10px; }
         
-        /* Bộ tăng giảm số lượng */
         .quantity-box {
             display: flex;
             align-items: center;
@@ -151,10 +144,9 @@
             text-transform: uppercase;
         }
         .btn-order:hover { background: #002244; box-shadow: 0 5px 15px rgba(0, 51, 102, 0.3); }
+        .error-msg { color: var(--accent-red); background: #fdf2f2; padding: 10px; border-radius: 5px; margin-bottom: 20px; font-weight: 600; }
         
-        @media (max-width: 850px) {
-            .container { flex-direction: column; }
-        }
+        @media (max-width: 850px) { .container { flex-direction: column; } }
     </style>
 </head>
 <body>
@@ -163,22 +155,31 @@
         <div class="info-section">
             <h2 class="section-title">Thông tin đơn hàng</h2>
             
+            <c:if test="${not empty requestScope.ERROR}">
+                <div class="error-msg">${requestScope.ERROR}</div>
+            </c:if>
+
             <form id="checkoutForm" action="MainController" method="POST">
                 <input type="hidden" name="action" value="checkout">
                 
                 <div class="form-group">
                     <label>Họ và tên người nhận</label>
-                    <input type="text" name="fullName" class="input-control" value="${sessionScope.LOGIN_USER.fullName}" placeholder="Ví dụ: Nguyễn Văn A">
+                    <input type="text" name="fullName" class="input-control" 
+                           value="${sessionScope.LOGIN_USER.fullName}" placeholder="Ví dụ: Nguyễn Văn A">
                 </div>
 
                 <div class="form-group">
                     <label>Số điện thoại liên hệ</label>
-                    <input type="text" name="phone" class="input-control" placeholder="Nhập số điện thoại để shop gọi xác nhận" required>
+                    <input type="text" name="phone" class="input-control" 
+                           value="${not empty requestScope.SAVED_PHONE ? requestScope.SAVED_PHONE : sessionScope.LOGIN_USER.phone}" 
+                           placeholder="Nhập số điện thoại để shop gọi xác nhận" required>
                 </div>
 
                 <div class="form-group">
                     <label>Địa chỉ nhận hàng (chi tiết)</label>
-                    <textarea name="shippingAddress" class="input-control" rows="3" placeholder="Số nhà, tên đường, Phường/Xã, Quận/Huyện..." required></textarea>
+                    <textarea name="shippingAddress" class="input-control" rows="3" 
+                              placeholder="Số nhà, tên đường, Phường/Xã, Quận/Huyện..." 
+                              required>${not empty requestScope.SAVED_ADDRESS ? requestScope.SAVED_ADDRESS : sessionScope.LOGIN_USER.address}</textarea>
                 </div>
 
                 <h2 class="section-title" style="margin-top: 45px;">Hình thức thanh toán</h2>
