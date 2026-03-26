@@ -7,69 +7,53 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html>
-    <style>
-        .main-header {
-            border-bottom: 1px solid #eee;
-            padding: 15px 0;
-            font-family: 'Arial', sans-serif;
-        }
-
-        .header-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .brand a {
-            font-size: 24px;
-            font-weight: bold;
-            text-decoration: none;
-            color: #000;
-            text-transform: uppercase;
-        }
-
-        .search-form {
-            display: flex;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            overflow: hidden;
-        }
-
-        .search-form input {
-            border: none;
-            padding: 8px 15px;
-            width: 300px;
-            outline: none;
-        }
-
-        .user-actions {
-            display: flex;
-            gap: 20px;
-        }
-
-        .action-item {
-            text-decoration: none;
-            color: #333;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            font-size: 12px;
-            position: relative;
-        }
-
-        .action-item i {
-            font-size: 20px;
-            margin-bottom: 4px;
-        }
-    </style>
-
     <header class="main-header">
         <div class="header-container">
             <div class="brand">
                 <a href="home">TH Trueshop</a>
             </div>
+
+            <nav class="main-nav">
+                <ul class="nav-list">
+                    <li class="nav-item has-mega-menu">
+                        <a href="#">SẢN PHẨM <span class="arrow">v</span></a>
+                        <div class="mega-menu">
+                            <div class="mega-column">
+                                <h3 class="mega-title">ÁO NAM</h3>
+                                <ul>
+                                    <li><a href="search?category=ao-thun">Áo Thun</a></li>
+                                    <li><a href="search?category=ao-so-mi">Áo Sơ Mi</a></li>
+                                    <li><a href="search?category=ao-polo">Áo Polo</a></li>
+                                </ul>
+                            </div>
+                            <div class="mega-column">
+                                <h3 class="mega-title">QUẦN NAM</h3>
+                                <ul>
+                                    <li><a href="search?category=quan-jean">Quần Jean</a></li>
+                                    <li><a href="search?category=quan-short">Quần Short</a></li>
+                                    <li><a href="search?category=quan-kaki">Quần Kaki</a></li>
+                                </ul>
+                            </div>
+                            <div class="mega-column">
+                                <h3 class="mega-title">PHỤ KIỆN</h3>
+                                <ul>
+                                    <li><a href="search?category=giay-dep">Giày & Dép</a></li>
+                                    <li><a href="search?category=non">Nón</a></li>
+                                    <li><a href="search?category=balo-tui-vi">Balo, Túi & Ví</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </li>
+
+                    <li class="nav-item">
+                        <a href="#">HÀNG MỚI <span class="badge-new-nav">NEW</span></a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a href="#">BÁN CHẠY</a>
+                    </li>
+                </ul>
+            </nav>
 
             <div class="search-section">
                 <form action="search" method="GET" class="search-form">

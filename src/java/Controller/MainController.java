@@ -23,20 +23,42 @@ public class MainController extends HttpServlet {
                 url = "HomeController";
             } else {
                 switch (action) {
-                    case "login": url = "LoginController"; break;
-                    case "logout": url = "LogoutController"; break;
-                    case "view-product": url = "ProductController"; break;
-                    case "search": url = "SearchController"; break;
-                    
-                    case "search-admin-product": url = "SearchAdminProductController"; break;
-                    case "add-to-cart": url = "CartController"; break;
-                    case "view-cart": url = "cart.jsp"; break;
-                    case "remove-from-cart": url = "CartController"; break;
-                    
+                    case "login":
+                        url = "LoginController";
+                        break;
+                    case "logout":
+                        url = "LogoutController";
+                        break;
+                    case "view-product":
+                        url = "ProductController";
+                        break;
+                    case "search":
+                        url = "SearchController";
+                        break;
+
+                    case "search-admin-product":
+                        url = "SearchAdminProductController";
+                        break;
+                    case "add-to-cart":
+                        url = "CartController";
+                        break;
+                    case "view-cart":
+                        url = "cart.jsp";
+                        break;
+                    case "remove-from-cart":
+                        url = "CartController";
+                        break;
+
                     // Thêm các tính năng của bạn kia vào đây
-                    case "recycle-bin": url = "RecycleBinController"; break;
-                    case "restore-product": url = "RestoreProductController"; break;
-                    case "hard-delete-product": url = "HardDeleteProductController"; break;
+                    case "recycle-bin":
+                        url = "RecycleBinController";
+                        break;
+                    case "restore-product":
+                        url = "RestoreProductController";
+                        break;
+                    case "hard-delete-product":
+                        url = "HardDeleteProductController";
+                        break;
                     //Chuc nang thanh toan To Trieu Tien
                     case "checkout":
                         url = "CheckoutController";
@@ -50,6 +72,12 @@ public class MainController extends HttpServlet {
                         break;
                     //Trả về trang success sau khi thanh tons thành công trên CheckoutController Tô Triệu Tiến
                     case "success":
+                        url = "success.jsp";
+                        break;
+                         // THÊM ĐOẠN NÀY VÀO ĐỂ ĐÓN NÚT BẤM TỪ TRANG QR
+                    
+                    case "confirm-payment":
+                        request.setAttribute("SUCCESS_MSG", "Cảm ơn bạn! Đơn hàng đã được xác nhận thanh toán.");
                         url = "success.jsp";
                         break;
 
