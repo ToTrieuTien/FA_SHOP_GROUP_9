@@ -42,6 +42,9 @@ public class MainController extends HttpServlet {
                     case "add-to-cart":
                         url = "CartController";
                         break;
+                    case "buy-now":
+                        url = "CartController";
+                        break;    
                     case "view-cart":
                         url = "cart.jsp";
                         break;

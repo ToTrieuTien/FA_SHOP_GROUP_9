@@ -45,21 +45,36 @@ public class CartController extends HttpServlet {
                 return;
             }
 
-            // 2. THÊM VÀO GIỎ HÀNG
-            if ("add-to-cart".equals(action)) {
+            // 2. THÊM VÀO GIỎ HÀNG HOẶC MUA NGAY
+            if ("add-to-cart".equals(action) || "buy-now".equals(action)) {
                 String productID = request.getParameter("productID");
                 String variantID = request.getParameter("variantID");
+
+                // Lấy số lượng và size từ giao diện người dùng nhập
+                String quantityStr = request.getParameter("quantity");
+                int quantity = (quantityStr != null && !quantityStr.isEmpty()) ? Integer.parseInt(quantityStr) : 1;
+
                 if (productID != null) {
                     ProductDAO dao = new ProductDAO();
                     ProductDTO product = dao.getProductByID(productID);
                     if (product != null) {
-                        product.setQuantity(1);
+                        product.setQuantity(quantity); // Set đúng số lượng người ta bấm dấu +
                         product.setVariantID(variantID != null ? Integer.parseInt(variantID) : 1);
                         cart.add(product);
                         session.setAttribute("CART", cart);
                     }
                 }
-                response.sendRedirect("MainController");
+
+                // NẾU LÀ MUA NGAY -> BAY THẲNG RA GIỎ HÀNG ĐỂ THANH TOÁN
+                if ("buy-now".equals(action)) {
+                    response.sendRedirect("MainController?action=view-cart");
+                } // NẾU LÀ THÊM VÀO GIỎ -> Ở LẠI TRANG HIỆN TẠI & BÁO THÀNH CÔNG
+                else {
+                    // Tạo một câu thông báo lưu tạm vào Session
+                    session.setAttribute("ADD_SUCCESS", "Đã thêm sản phẩm vào giỏ hàng thành công!");
+                    // Chuyển hướng về lại đúng cái trang chi tiết của sản phẩm đó
+                    response.sendRedirect("MainController?action=view-product&id=" + productID);
+                }
                 return;
             } // 3. XỬ LÝ XÁC NHẬN THANH TOÁN (LOGIC TRỌNG TÂM TIẾN CẦN)
             else if ("confirm-payment".equals(action)) {

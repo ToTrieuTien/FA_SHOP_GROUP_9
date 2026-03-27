@@ -311,8 +311,8 @@
                     <c:set var="total" value="${total + item.totalPrice}" />
                     <div class="cart-item">
                         <div class="product-img">
-                            <img src="${pageContext.request.contextPath}/img/${item.imageURL}" alt="${item.productName}" 
-                                 onerror="this.src='https://via.placeholder.com/150?text=PRODUCT'">
+                            <img src="${pageContext.request.contextPath}/images/${item.imageURL}" alt="${item.productName}" 
+                                 onerror="this.onerror=null; this.src='https://via.placeholder.com/150?text=PRODUCT'">
                         </div>
 
                         <div class="item-detail">
