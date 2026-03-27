@@ -90,7 +90,7 @@ public class MainController extends HttpServlet {
                         break;
                     // Xóa đơn hàng
                     case "delete-order":
-                        url = "CartController";
+                        url = "OrderController";
                         break;
                     default:
                         request.setAttribute("ERROR", "Hành động (Action) không được hỗ trợ!");

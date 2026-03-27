@@ -138,6 +138,6 @@
                 <i>Hệ thống sẽ kiểm tra và xác nhận đơn hàng ngay khi nhận được thông báo từ ngân hàng. Vui lòng không tắt trình duyệt cho đến khi nhận được thông báo thành công.</i>
             </p>
         </div>
-
+                
     </body>
 </html>

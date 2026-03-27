@@ -258,8 +258,8 @@ public class OrderDAO {
     }
 
     public boolean deleteOrder(int orderID) {
-        String sqlDeleteDetails = "DELETE FROM tblOrderDetails WHERE OrderID = ?";
-        String sqlDeleteOrder = "DELETE FROM tblOrders WHERE OrderID = ?";
+        String sqlDeleteDetails = "DELETE FROM OrderDetails WHERE OrderID = ?";
+        String sqlDeleteOrder = "DELETE FROM Orders WHERE OrderID = ?";
         try ( Connection conn = DBUtils.getConnection()) {
             conn.setAutoCommit(false); // Bắt đầu transaction
             try ( PreparedStatement ps1 = conn.prepareStatement(sqlDeleteDetails);  PreparedStatement ps2 = conn.prepareStatement(sqlDeleteOrder)) {
