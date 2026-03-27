@@ -1,9 +1,3 @@
-<%-- 
-    Document   : footer
-    Created on : Mar 27, 2026, 11:48:05 AM
-    Author     : TRIEUTIEN
---%>
-
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <style>
     .footer {
@@ -14,7 +8,6 @@
         font-family: 'Plus Jakarta Sans', sans-serif;
         border-top: 1px solid rgba(255,255,255,0.05);
     }
-
     .footer-container {
         display: grid;
         grid-template-columns: 1.5fr 1fr 1fr 1.2fr;
@@ -22,7 +15,6 @@
         max-width: 1300px;
         margin: 0 auto;
     }
-
     .footer-logo a {
         color: var(--primary-blue);
         font-size: 1.6rem;
@@ -31,11 +23,9 @@
         display: block;
         margin-bottom: 20px;
     }
-
     .footer-logo span {
         color: var(--text-white);
     }
-
     .footer-column h4 {
         color: var(--text-white);
         font-size: 1.1rem;
@@ -43,7 +33,6 @@
         margin-bottom: 25px;
         position: relative;
     }
-
     .footer-column h4::after {
         content: '';
         position: absolute;
@@ -53,7 +42,6 @@
         height: 2px;
         background: var(--primary-blue);
     }
-
     .footer-links {
         list-style: none;
         padding: 0;
@@ -71,7 +59,6 @@
         color: var(--primary-blue);
         padding-left: 5px;
     }
-
     .contact-info li {
         display: flex;
         gap: 12px;
@@ -82,7 +69,6 @@
         color: var(--primary-blue);
         margin-top: 3px;
     }
-
     .social-links {
         display: flex;
         gap: 15px;
@@ -104,7 +90,6 @@
         background: var(--primary-blue);
         transform: translateY(-5px);
     }
-
     .footer-bottom {
         text-align: center;
         padding-top: 40px;
@@ -112,7 +97,6 @@
         border-top: 1px solid rgba(255,255,255,0.05);
         font-size: 0.85rem;
     }
-
     .payment-methods {
         margin-bottom: 15px;
         font-size: 1.5rem;

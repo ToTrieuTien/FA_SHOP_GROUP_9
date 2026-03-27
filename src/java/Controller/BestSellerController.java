@@ -16,16 +16,18 @@ public class BestSellerController extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
-        try {
-            ProductDAO dao = new ProductDAO();
-            // Lấy 12 sản phẩm có lượt mua cao nhất
-            List<ProductDTO> list = dao.getBestSellers(12);
+try {
+    ProductDAO dao = new ProductDAO();
+    List<ProductDTO> list = dao.getBestSellers(12);
 
-            request.setAttribute("LIST_PRODUCT", list);
-            request.getRequestDispatcher("home.jsp").forward(request, response);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    // THÊM DÒNG NÀY:
+    request.setAttribute("TITLE", "SẢN PHẨM BÁN CHẠY"); 
+
+    request.setAttribute("LIST_PRODUCT", list);
+    request.getRequestDispatcher("home.jsp").forward(request, response);
+} catch (Exception e) {
+    e.printStackTrace();
+}
     }
 
     @Override

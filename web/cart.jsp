@@ -252,7 +252,7 @@
         </style>
     </head>
     <body>
-
+        <jsp:include page="header.jsp" />
         <div class="checkout-layout">
             <div class="info-card">
                 <form id="checkoutForm" action="MainController" method="POST" onsubmit="return validateOnSubmit()">
@@ -385,6 +385,6 @@
                 return true;
             }
         </script>
-
+        <jsp:include page="footer.jsp" />
     </body>
 </html>

@@ -13,7 +13,6 @@
         --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
     }
 
-    /* --- HEADER STYLES --- */
     .header {
         background: var(--bg-dark);
         height: 90px;
@@ -68,7 +67,6 @@
         color: var(--primary-blue);
     }
 
-    /* MEGA MENU LOGIC */
     .mega-menu {
         visibility: hidden;
         opacity: 0;
@@ -84,7 +82,7 @@
         padding: 30px;
         border-radius: 16px;
         box-shadow: 0 20px 50px rgba(0,0,0,0.15);
-        transition: 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+        transition: 0.3s;
         border: 1px solid #e2e8f0;
     }
     .nav-item::after {
@@ -108,7 +106,6 @@
         margin-bottom: 15px;
         padding-bottom: 8px;
         border-bottom: 2px solid #f1f5f9;
-        text-align: left;
     }
     .mega-col ul {
         list-style: none;
@@ -116,7 +113,6 @@
     }
     .mega-col li {
         margin-bottom: 10px;
-        text-align: left;
     }
     .mega-col a {
         color: #64748b;
@@ -139,7 +135,6 @@
         margin-left: 5px;
     }
 
-    /* SEARCH & ACTIONS */
     .search-container {
         background: rgba(255, 255, 255, 0.1);
         border-radius: 50px;

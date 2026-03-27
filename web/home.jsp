@@ -72,6 +72,7 @@
                 margin: 15px auto;
                 border-radius: 10px;
             }
+
             .product-grid {
                 display: grid;
                 grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -136,7 +137,6 @@
     </head>
 
     <body>
-
         <c:if test="${not empty sessionScope.SUCCESS_MSG}">
             <div id="toastMessage">
                 <i class="fa-solid fa-circle-check"></i> ${sessionScope.SUCCESS_MSG}
@@ -176,6 +176,5 @@
         </main>
 
         <jsp:include page="footer.jsp" />
-
     </body>
 </html>

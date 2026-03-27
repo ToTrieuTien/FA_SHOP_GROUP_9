@@ -46,7 +46,6 @@
                 box-shadow: 0 10px 30px rgba(0,0,0,0.05);
             }
 
-            /* Nút Tăng Giảm Số Lượng */
             .qty-box {
                 display: flex;
                 align-items: center;
@@ -78,7 +77,6 @@
                 background: transparent;
             }
 
-            /* Toast Notification Xịn xò */
             #toastMessage {
                 position: fixed;
                 top: 100px;
@@ -195,6 +193,5 @@
         </div>
 
         <jsp:include page="footer.jsp" />
-
     </body>
 </html>

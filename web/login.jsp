@@ -3,7 +3,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Đăng nhập - FA SHOP</title>
+    <title>Đăng nhập - TH TRUE FASHION SHOP</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -31,6 +31,10 @@
                     <input type="password" name="password" placeholder="Mật khẩu" required>
                     <span class="show-password-icon">👁</span>
                 </div>
+
+                <p style="color: green; text-align: left; margin-bottom: 10px; font-weight: bold;">
+                    ${requestScope.MESSAGE}
+                </p>
 
                 <p class="error-msg" style="color: red; text-align: left; margin-bottom: 15px; font-weight: bold;">
                     ${requestScope.ERROR}
